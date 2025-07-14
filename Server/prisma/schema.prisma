@@ -101,6 +101,7 @@ model ParticipantCommunityValue {
 
 model Job {
   id_job              Int      @id @default(autoincrement())
+  company_name        String
   id_community_member Int
   start_date          DateTime
   end_date            DateTime?
