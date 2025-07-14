@@ -12,6 +12,14 @@ async function getAll() {
 async function getById(id) {
   return await prisma.communityMember.findUnique({
     where: { id_community_member: id },
+    include: {
+      jobs: true,
+      skills: true,
+      tags: true,
+      participantEvents: true,
+      groupMemberships: true,
+      participantValues: true,
+    },
   });
 }
 
