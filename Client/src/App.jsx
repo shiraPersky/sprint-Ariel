@@ -1,14 +1,13 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import AdminViewUserProfile from "./pages/AdminProfileUser";
-<<<<<<< Updated upstream
-// import Sidebar from "./pages/Sidebar";   
 
-=======
+import AdminViewUserProfile from "./pages/AdminProfileUser";
+
+
 import Sidebar from "./pages/Sidebar";   
 import UploadData from "./pages/UploadMemberData";
 import UserSearchComponent from "./pages/SearchPage";
->>>>>>> Stashed changes
+
 import UserProfileForm from "./pages/UserProfileForm";
 import CommunityMembersPage from "./pages/CommunityPage";
 
@@ -17,12 +16,7 @@ function App() {
   return (
     <Router>
       <Routes>
-<<<<<<< Updated upstream
-       <Route path="/" element={<UserProfileForm />} />
-        {/* <Route path="/member/uploadData" element={<UploadData />} /> */}
-         {/* <Route path="/" element={<AdminViewUserProfile userId={null} />} /> */}
-        {/* <Route path="/member/id:/data/" element={<UserProfileForm />} /> */}
-=======
+
 
        <Route path="/member/id:/data/" element={<UserProfileForm />} />
         <Route path="/UserSearch" element={<UserSearchComponent />} />
@@ -30,8 +24,13 @@ function App() {
         <Route path="/member" element={<UploadData />} />
          <Route path="/sidebar" element={<Sidebar />} />
         <Route path="/manager/members/:id" element={<AdminViewUserProfile />} />
-    
->>>>>>> Stashed changes
+
+
+       {<Route path="/" element={<UserProfileForm />} />}
+        {/* <Route path="/member/data" element={<UploadData />} /> */}
+         {/* <Route path="/" element={<Slider />} /> */}
+        {/* <Route path="/manager/member" element={<UploadProfile />} /> */}
+      <Route path="/SearchPage" element={<SearchPage />} />
       </Routes>
     </Router>
   );
