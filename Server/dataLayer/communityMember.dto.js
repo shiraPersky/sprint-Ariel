@@ -1,37 +1,37 @@
 import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();//connection to database
+const prisma = new PrismaClient(); // connection to database
 
-async function createCommunityMember(data) {
+async function create(data) {
   return await prisma.communityMember.create({ data });
 }
 
-async function getAllCommunityMembers() {
+async function getAll() {
   return await prisma.communityMember.findMany();
 }
 
-async function getCommunityMemberById(id) {
+async function getById(id) {
   return await prisma.communityMember.findUnique({
     where: { id_community_member: id },
   });
 }
 
-async function updateCommunityMember(id, data) {
+async function update(id, data) {
   return await prisma.communityMember.update({
     where: { id_community_member: id },
     data,
   });
 }
 
-async function deleteCommunityMember(id) {
+async function remove(id) {
   return await prisma.communityMember.delete({
     where: { id_community_member: id },
   });
 }
 
 export default {
-  createCommunityMember,
-  getAllCommunityMembers,
-  getCommunityMemberById,
-  updateCommunityMember,
-  deleteCommunityMember,
+  create,
+  getAll,
+  getById,
+  update,
+  remove,
 };
