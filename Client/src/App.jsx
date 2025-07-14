@@ -6,7 +6,7 @@ import UploadData from "./pages/UploadMemberData";
 import UserSearchComponent from "./pages/SearchPage";
 import UserProfileForm from "./pages/UserProfileForm";
 import CommunityMembersPage from "./pages/CommunityPage";
-
+import "./pages/index.css"; 
 
 function App() {
   return (
@@ -16,9 +16,9 @@ function App() {
        <Route path="/member/:id/data/" element={<UserProfileForm />} />
        <Route path="/member/data/" element={<UserProfileForm />} />
         <Route path="/UserSearch" element={<UserSearchComponent />} />
-       <Route path="/manager/group/:idGroup" element={<CommunityMembersPage />} />
+        <Route path="/manager/group/:idGroup" element={<CommunityMembersPage />} />
         <Route path="/member" element={<UploadData />} />
-         <Route path="/sidebar" element={<Sidebar />} />
+        <Route path="/sidebar" element={<Sidebar />} />
         <Route path="/manager/members/:id" element={<AdminViewUserProfile />} />
     
       </Routes>
