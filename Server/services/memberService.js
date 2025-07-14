@@ -1,6 +1,6 @@
 import communityMemberData from "../dataLayer/communityMember.data.js";
 
-const { getById } = communityMemberData;
+const { getById, getAll } = communityMemberData;
 
 export async function getMemberById(id) {
   if (typeof id !== "string") {
@@ -21,4 +21,16 @@ export async function getMemberById(id) {
   console.log('Looking up member ID:', parsed); 
   const member = await getById(parsed);
   console.log('Found member:', member);    return member;
+}
+ 
+
+
+export async function getAllMembers() {
+  try {
+    const members = await getAll();
+    return members;
+  } catch (error) {
+    // אפשר להוסיף לוג שגיאות פה
+    throw new Error('Failed to retrieve members');
+  }
 }
