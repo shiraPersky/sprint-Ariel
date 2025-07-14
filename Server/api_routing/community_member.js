@@ -21,6 +21,6 @@ router.get('/:id', async (req, res) => {
 });
     
 
-router.put('/:id', anotherFunc);
+// router.put('/:id', anotherFunc);
 
 export default router;

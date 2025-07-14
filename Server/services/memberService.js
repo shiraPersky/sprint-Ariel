@@ -1,25 +1,24 @@
-import communityMemberData from '../dataLayer/communityMember.data.js';
+import communityMemberData from "../dataLayer/communityMember.data.js";
 
 const { getById } = communityMemberData;
 
-
 export async function getMemberById(id) {
-  // Validate that an ID was provided
-  if (!id) {
-    const error = new Error('Missing member ID');
+  if (typeof id !== "string") {
+    const error = new Error("Member ID must be a string");
     error.status = 400;
     throw error;
   }
 
-  // Validate that the ID is a non-empty string
-  if (typeof id !== 'string' || id.trim() === '') {
-    const error = new Error('Invalid member ID');
+  const trimmed = id.trim();
+  const parsed = parseInt(trimmed, 10);
+
+  if (isNaN(parsed) || parsed < 1) {
+    const error = new Error("Invalid member ID");
     error.status = 400;
     throw error;
   }
 
-  // Query the database using the DB layer function
-  const member = await getById(id);
-
-  return member;
+  console.log('Looking up member ID:', parsed); 
+  const member = await getById(parsed);
+  console.log('Found member:', member);    return member;
 }
