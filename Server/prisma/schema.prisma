@@ -106,6 +106,7 @@ model Job {
   start_date          DateTime
   end_date            DateTime?
   icon                String?
+  description         String?
 
   member CommunityMember @relation(fields: [id_community_member], references: [id_community_member])
 
