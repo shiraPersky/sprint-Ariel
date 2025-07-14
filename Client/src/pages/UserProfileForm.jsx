@@ -1,202 +1,311 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
-
-const UserProfileForm = () => {
+export default function EditableUserProfile() {
+  const [activeTab, setActiveTab] = useState('contact');
   const [formData, setFormData] = useState({
-    hebrewName: '',
-    englishName: '',
-    email: '',
+    firstName: '',
+    lastName: '',
     phone: '',
+    email: '',
     linkedin: '',
     facebook: '',
-    location: '',
     about: '',
     skills: '',
     contribution: '',
-    image: null
+    experience: [],
   });
 
+  const [originalData, setOriginalData] = useState({});
+  const [isDirty, setIsDirty] = useState(false);
+  const [isFinalStep, setIsFinalStep] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  useEffect(() => {
+    // Load mock data
+    const mockData = {
+      firstName: 'Yael',
+      lastName: 'Cohen',
+      phone: '052-1234567',
+      email: 'user@example.com',
+      linkedin: 'https://linkedin.com/in/user',
+      facebook: 'https://facebook.com/user',
+      about: 'Lorem ipsum dolor sit amet.',
+      skills: 'React, Design',
+      contribution: '',
+      experience: [],
+    };
+    setFormData(mockData);
+    setOriginalData(mockData);
+  }, []);
+
+  useEffect(() => {
+    setIsDirty(JSON.stringify(formData) !== JSON.stringify(originalData));
+  }, [formData]);
+
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === 'image') {
-      setFormData({ ...formData, image: files[0] });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleExperienceChange = (index, field, value) => {
+    const updated = [...formData.experience];
+    updated[index][field] = value;
+    setFormData((prev) => ({ ...prev, experience: updated }));
+  };
+
+  const addExperience = () => {
+    setFormData((prev) => ({
+      ...prev,
+      experience: [...prev.experience, { company: '', dates: '', description: '', firstName: '', lastName: '' }],
+    }));
+  };
+
+  const getInitials = (first, last) =>
+    `${first?.charAt(0) || ''}${last?.charAt(0) || ''}`.toUpperCase();
+
+  const handleUpdateClick = () => {
+    setIsFinalStep(true);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Form Data:', formData);
-    // TODO: send to backend
+    console.log('Final Submitted Data:', formData);
+    setIsSubmitted(true);
   };
 
+  if (isSubmitted) {
+    return (
+      <div className="container mt-5 text-center">
+        <h4>Thank you! Your profile has been submitted.</h4>
+      </div>
+    );
+  }
+
   return (
-    <div className="container" dir="rtl">
-      <h1 className="text-center mb-4">Edit Profile</h1>
+    <div className="container mt-3">
+      {/* Header */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div className="d-flex align-items-center">
+          <div
+            className="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-3"
+            style={{ width: 60, height: 60, fontSize: 24 }}
+          >
+            {getInitials(formData.firstName, formData.lastName)}
+          </div>
+          <h5 className="m-0">
+            {formData.firstName || formData.lastName
+              ? `${formData.firstName} ${formData.lastName}`
+              : 'Unnamed User'}
+          </h5>
+        </div>
+
+        {!isFinalStep && (
+  <button className="btn btn-success" onClick={handleUpdateClick}>
+    Update
+  </button>
+)}
+
+      </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="row g-4">
-          {/* Profile Image */}
-          <div className="col-12 col-md-4 text-center">
-            <img
-              src={
-                formData.image
-                  ? URL.createObjectURL(formData.image)
-                  : 'images/profile-placeholder.png'
-              }
-              alt="Profile"
-              className="profile-img mb-2"
-              style={{
-                width: '100%',
-                maxWidth: '200px',
-                height: 'auto',
-                borderRadius: '50%',
-                objectFit: 'cover',
-              }}
-            />
-            <input
-              type="file"
-              className="form-control"
-              accept="image/*"
-              name="image"
-              onChange={handleChange}
-            />
-          </div>
+        {!isFinalStep ? (
+          <>
+            {/* Tabs */}
+            <ul className="nav nav-pills nav-justified mb-3">
+              {['contact', 'about', 'experience', 'skills'].map((tab) => (
+                <li className="nav-item" key={tab}>
+                  <button
+                    className={`nav-link ${activeTab === tab ? 'active' : ''}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setActiveTab(tab);
+                    }}
+                  >
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </button>
+                </li>
+              ))}
+            </ul>
 
-          {/* Text Fields */}
-          <div className="col-12 col-md-8">
-            <div className="row g-3">
-              <div className="col-md-6">
-                <label className="form-label">Name (Hebrew)</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name="hebrewName"
-                  value={formData.hebrewName}
-                  onChange={handleChange}
-                  placeholder="Yael Cohen"
-                />
-              </div>
-              <div className="col-md-6">
-                <label className="form-label">Name (English)</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name="englishName"
-                  value={formData.englishName}
-                  onChange={handleChange}
-                  placeholder="Yael Cohen"
-                />
-              </div>
-              <div className="col-md-6">
-                <label className="form-label">Email</label>
-                <input
-                  type="email"
-                  className="form-control"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="yael@example.com"
-                />
-              </div>
-              <div className="col-md-6">
-                <label className="form-label">Phone</label>
-                <input
-                  type="tel"
-                  className="form-control"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="052-1234567"
-                />
-              </div>
-              <div className="col-md-6">
-                <label className="form-label">LinkedIn</label>
-                <input
-                  type="url"
-                  className="form-control"
-                  name="linkedin"
-                  value={formData.linkedin}
-                  onChange={handleChange}
-                 // placeholder="https://linkedin.com/in/yael"
-                />
-              </div>
-              <div className="col-md-6">
-                <label className="form-label">Facebook</label>
-                <input
-                  type="url"
-                  className="form-control"
-                  name="facebook"
-                  value={formData.facebook}
-                  onChange={handleChange}
-                  placeholder="https://facebook.com/yael"
-                />
-              </div>
-              <div className="col-12">
-                <label className="form-label">Location</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleChange}
-                  placeholder="Tel Aviv, Israel"
-                />
-              </div>
+            <div className="tab-content">
+              {activeTab === 'contact' && (
+                <div className="tab-pane active">
+                  <div className="mb-3">
+                    <label>First Name</label>
+                    <input
+                      type="text"
+                      name="firstName"
+                      className="form-control"
+                      value={formData.firstName}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label>Last Name</label>
+                    <input
+                      type="text"
+                      name="lastName"
+                      className="form-control"
+                      value={formData.lastName}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label>Phone</label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      className="form-control"
+                      value={formData.phone}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label>Email</label>
+                    <input
+                      type="email"
+                      name="email"
+                      className="form-control"
+                      value={formData.email}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label>LinkedIn</label>
+                    <input
+                      type="url"
+                      name="linkedin"
+                      className="form-control"
+                      value={formData.linkedin}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label>Facebook</label>
+                    <input
+                      type="url"
+                      name="facebook"
+                      className="form-control"
+                      value={formData.facebook}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'about' && (
+                <div className="tab-pane active">
+                  <div className="mb-3">
+                    <label>About</label>
+                    <textarea
+                      name="about"
+                      rows="4"
+                      className="form-control"
+                      value={formData.about}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'experience' && (
+                <div className="tab-pane active">
+                  {formData.experience.map((exp, index) => (
+                    <div key={index} className="border rounded p-3 mb-3">
+                      <div className="d-flex align-items-center mb-2">
+                        <div
+                          className="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center me-2"
+                          style={{ width: 40, height: 40 }}
+                        >
+                          {getInitials(exp.firstName, exp.lastName)}
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="Company"
+                          className="form-control"
+                          value={exp.company}
+                          onChange={(e) => handleExperienceChange(index, 'company', e.target.value)}
+                        />
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Dates"
+                        className="form-control mb-2"
+                        value={exp.dates}
+                        onChange={(e) => handleExperienceChange(index, 'dates', e.target.value)}
+                      />
+                      <textarea
+                        placeholder="Description"
+                        className="form-control"
+                        rows="2"
+                        value={exp.description}
+                        onChange={(e) => handleExperienceChange(index, 'description', e.target.value)}
+                      />
+                      <div className="mt-2 d-flex">
+                        <input
+                          type="text"
+                          placeholder="First Name"
+                          className="form-control me-1"
+                          value={exp.firstName}
+                          onChange={(e) => handleExperienceChange(index, 'firstName', e.target.value)}
+                        />
+                        <input
+                          type="text"
+                          placeholder="Last Name"
+                          className="form-control"
+                          value={exp.lastName}
+                          onChange={(e) => handleExperienceChange(index, 'lastName', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  <button type="button" className="btn btn-outline-primary w-100" onClick={addExperience}>
+                    Add Experience
+                  </button>
+                </div>
+              )}
+
+              {activeTab === 'skills' && (
+                <div className="tab-pane active">
+                  <div className="mb-3">
+                    <label>Skills</label>
+                    <input
+                      type="text"
+                      name="skills"
+                      className="form-control"
+                      value={formData.skills}
+                      onChange={handleChange}
+                      placeholder="e.g. Writing, Design, Marketing"
+                    />
+                    <div className="form-text">Separate multiple skills with commas.</div>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-
-          {/* About */}
-          <div className="col-12">
-            <label className="form-label">About</label>
-            <textarea
-              className="form-control"
-              rows="3"
-              name="about"
-              value={formData.about}
-              onChange={handleChange}
-              placeholder="Tell us about yourself..."
-            />
-          </div>
-
-          {/* Skills */}
-          <div className="col-12">
-            <label className="form-label">Skills</label>
-            <input
-              type="text"
-              className="form-control"
-              name="skills"
-              value={formData.skills}
-              onChange={handleChange}
-              placeholder="Writing, Graphic Design, Digital Marketing"
-            />
-            <div className="form-text">Separate multiple skills with commas.</div>
-          </div>
-
-          {/* Community Contribution */}
-          <div className="col-12">
-            <label className="form-label">Community Contribution</label>
-            <textarea
-              className="form-control"
-              rows="3"
-              name="contribution"
-              value={formData.contribution}
-              onChange={handleChange}
-              placeholder="I can help with mentoring, translating, organizing events..."
-            />
-          </div>
-
-          {/* Submit Button */}
-          <div className="col-12 text-center">
-            <button type="submit" className="btn btn-success btn-lg mt-3">
-              Save Changes
-            </button>
-          </div>
-        </div>
+          </>
+        ) : (
+          <>
+            <div className="mb-3">
+              <label><strong>Community Contribution (Required)</strong></label>
+              <textarea
+                name="contribution"
+                className="form-control"
+                rows="4"
+                required
+                value={formData.contribution}
+                onChange={handleChange}
+                placeholder="e.g. Mentoring, Translating, Organizing events"
+              />
+            </div>
+            {formData.contribution.trim() !== '' && (
+              <div className="text-center">
+                <button type="submit" className="btn btn-primary px-4">Submit</button>
+              </div>
+            )}
+          </>
+        )}
       </form>
     </div>
   );
-};
-
-export default UserProfileForm;
+}
