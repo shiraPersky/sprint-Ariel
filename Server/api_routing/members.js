@@ -1,16 +1,15 @@
 import express from 'express';
+import * as communityMemberService from '../services/memberService.js';
+
 const router = express.Router();
 
-// definition
-router.get('/', (req,res)=>{
-    try{
-
-    }
-    catch(err) {
-res.status(400).send("[]")
-    }
+router.get('/', async (req, res, next) => {
+  try {
+    const members = await communityMemberService.getAllMembers();
+    res.json(members); 
+  } catch (err) {
+    next(err); 
+  }
 });
-
-router.get('/id:', anotherFunc);
 
 export default router;
