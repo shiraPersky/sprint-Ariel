@@ -5,7 +5,7 @@ import searchRoutes from './api_routing/search.router.js';
 import uploadRoutes from './api_routing/upload.router.js';
 const app = express();
 
-app.use('/member', communityMemberRoutes); // <-- כאן כן רשום "products"
+app.use('/member', communityMemberRoutes); 
 app.use('/manager/members', memberRoutes);
 app.use('/manager/search', searchRoutes);
 app.use('/member', uploadRoutes)
