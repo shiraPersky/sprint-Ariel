@@ -8,7 +8,7 @@ const SearchField = ({ searchText, setSearchText, onSearch }) => (
       <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
       <input
         type="text"
-        placeholder="חפש לפי שם..."
+        placeholder="Free text search..."
         value={searchText}
         onChange={(e) => setSearchText(e.target.value)}
         onKeyPress={(e) => e.key === 'Enter' && onSearch()}

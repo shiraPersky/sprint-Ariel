@@ -14,7 +14,7 @@ import GroupsDropdown from './GroupsDropdown';
   <div className="bg-gray-50 rounded-2xl p-6 mb-8">
     <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
       <Filter className="w-5 h-5 ml-2" />
-      פילטר לפי קבוצות
+      Filter by Groups
     </h3>
     
     {groupsLoading ? (
@@ -37,7 +37,7 @@ import GroupsDropdown from './GroupsDropdown';
 
     {selectedGroups.length > 0 && (
       <div className="mt-4">
-        <p className="text-sm text-gray-600 mb-2">קבוצות נבחרות:</p>
+        <p className="text-sm text-gray-600 mb-2">Selected groups:</p>
         <div className="flex flex-wrap gap-2">
           {getSelectedGroupNames().map(groupName => (
             <span key={groupName} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
@@ -46,7 +46,7 @@ import GroupsDropdown from './GroupsDropdown';
           ))}
         </div>
         <p className="text-xs text-gray-500 mt-2">
-          יחפש משתמשים שחברים בכל הקבוצות הנבחרות
+          Will search for users who are members of all selected groups.
         </p>
       </div>
     )}
