@@ -1,4 +1,6 @@
-import { getById } from '../db/memberDb.js';
+import communityMemberData from '../dataLayer/communityMember.data.js';
+
+const { getById } = communityMemberData;
 
 
 export async function getMemberById(id) {

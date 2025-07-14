@@ -1,5 +1,5 @@
 import express from 'express';
-import { getUserById as getMemberById } from '../services/memberService.js';
+import { getMemberById  } from '../services/memberService.js';
 
 const router = express.Router();
 
