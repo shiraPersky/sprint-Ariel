@@ -8,7 +8,8 @@ function UploadData() {
   const [submitClicked, setSubmitClicked] = useState(false);
   const navigate = useNavigate();
 
-  const [state, setRequest] = useDataApi(null, null);
+  const [state, setRequest] = useDataApi(null);
+
   const { data, isLoading, isError } = state;
 
   // אם הצליח וקיבלנו id מהשרת – נווט לעמוד לפי id
@@ -30,7 +31,7 @@ function UploadData() {
     if (linkedinUrl) {
       setSubmitClicked(true);
       setRequest({
-        url: '/api/linkedin',
+        url: '/member',
         method: 'POST',
         body: { url: linkedinUrl }
       });

@@ -79,7 +79,7 @@ export default function EditableUserProfile() {
     if (!formData.contribution.trim()) return;
 
     setSubmitRequest({
-      url: '/api/profile',
+      url: '//member/data/',
       method: 'POST',
       body: formData,
     });
@@ -155,16 +155,6 @@ export default function EditableUserProfile() {
             <div className="tab-content">
               {activeTab === 'contact' && (
                 <div className="tab-pane active">
-                  <div className="mb-3">
-                    <label>ID Number</label>
-                    <input
-                      type="text"
-                      name="idNumber"
-                      className="form-control"
-                      value={formData.idNumber}
-                      onChange={handleChange}
-                    />
-                  </div>
                   <div className="mb-3">
                     <label>Phone</label>
                     <input
