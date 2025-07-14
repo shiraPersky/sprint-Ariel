@@ -1,10 +1,10 @@
 // GroupDetailsPage.js - דף פרטי קבוצה עם רשימת חברים
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowRight, Users, Building, Tag, Loader2 } from 'lucide-react';
+import { ArrowRight, Users, Building, Tag, Loader2,UserPlus  } from 'lucide-react';
 import useServerRequestsMock from '../Searchpage/testcomp'; // או useServerRequests
 import UserCard from '../Searchpage/UserCard';
-
+import AddUsersModal from './AddUsersModal';
 const GroupDetailsPage = () => {
   const { groupId } = useParams();
   const navigate = useNavigate();
@@ -12,9 +12,25 @@ const GroupDetailsPage = () => {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [membersLoading, setMembersLoading] = useState(true);
+  const [showAddUsersModal, setShowAddUsersModal] = useState(false);
 
-  const { getGroupDetails, getGroupMembers } = useServerRequestsMock();
-
+  const { 
+    getGroupDetails, 
+    getGroupMembers, 
+    getAvailableUsersForGroup, 
+    addUsersToGroup 
+  } = useServerRequestsMock();
+const handleUsersAdded = async () => {
+  try {
+    setMembersLoading(true);
+    const updatedMembers = await getGroupMembers(groupId);
+    setMembers(updatedMembers);
+  } catch (error) {
+    console.error('Error reloading members:', error);
+  } finally {
+    setMembersLoading(false);
+  }
+};
   useEffect(() => {
     const loadGroupData = async () => {
       try {
@@ -44,7 +60,7 @@ const GroupDetailsPage = () => {
   }, [groupId]);
 
   const handleUserClick = (user) => {
-    navigate(`/member/${user.id}/data/`);
+    navigate(`/user/${user.id}`);
   };
 
   if (loading) {
@@ -64,7 +80,7 @@ const GroupDetailsPage = () => {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">קבוצה לא נמצאה</h2>
           <button
-            onClick={() => navigate('/UserSearch')}
+            onClick={() => navigate('/search')}
             className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
           >
             חזרה לחיפוש
@@ -80,7 +96,7 @@ const GroupDetailsPage = () => {
         
         {/* כפתור חזרה */}
         <button
-          onClick={() => navigate('/UserSearch')}
+          onClick={() => navigate('/search')}
           className="flex items-center mb-6 px-4 py-2 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
         >
           <ArrowRight className="w-5 h-5 ml-2" />
@@ -148,12 +164,24 @@ const GroupDetailsPage = () => {
               חברי הקבוצה ({members.length})
             </h2>
             
-            {membersLoading && (
-              <div className="flex items-center">
-                <Loader2 className="w-5 h-5 animate-spin text-blue-500 ml-2" />
-                <span className="text-gray-600">טוען חברים...</span>
-              </div>
-            )}
+            <div className="flex items-center gap-4">
+              {membersLoading && (
+                <div className="flex items-center">
+                  <Loader2 className="w-5 h-5 animate-spin text-blue-500 ml-2" />
+                  <span className="text-gray-600">טוען חברים...</span>
+                </div>
+              )}
+              
+              {/* כפתור הוספת משתמשים */}
+              <button
+                onClick={() => setShowAddUsersModal(true)}
+                className="flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-blue-600 text-white rounded-lg hover:from-green-600 hover:to-blue-700 transition-all"
+                disabled={loading}
+              >
+                <UserPlus className="w-5 h-5 ml-2" />
+                הוסף משתמשים
+              </button>
+            </div>
           </div>
 
           {/* רשת החברים */}
@@ -172,6 +200,17 @@ const GroupDetailsPage = () => {
             </div>
           )}
         </div>
+
+        {/* מודל הוספת משתמשים */}
+        <AddUsersModal
+          isOpen={showAddUsersModal}
+          onClose={() => setShowAddUsersModal(false)}
+          groupId={groupId}
+          groupName={group?.name}
+          getAvailableUsers={getAvailableUsersForGroup}
+          addUsersToGroup={addUsersToGroup}
+          onUsersAdded={handleUsersAdded}
+        />
       </div>
     </div>
   );

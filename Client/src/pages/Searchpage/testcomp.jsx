@@ -350,6 +350,67 @@ const useServerRequestsMock = () => {
     }
   };
 
+  // 🆕 פונקציה חדשה - קבלת רשימת משתמשים זמינים להוספה לקבוצה
+  const getAvailableUsersForGroup = async (groupId) => {
+    try {
+      console.log('👤 [MOCK] Getting available users for group:', groupId);
+      
+      await simulateNetworkDelay(800);
+      
+      // מצא משתמשים שלא חברים בקבוצה
+      const availableUsers = MOCK_USERS.filter(user => 
+        !user.groups.some(userGroup => userGroup.id === parseInt(groupId))
+      ).map(user => ({
+        id: user.id,
+        name: user.name,
+        position: user.position,
+        company: user.company
+      }));
+      
+      console.log(`✅ [MOCK] Found ${availableUsers.length} available users for group ${groupId}`);
+      return availableUsers;
+      
+    } catch (error) {
+      console.error('❌ [MOCK] Error getting available users:', error);
+      alert('שגיאה בטעינת רשימת המשתמשים הזמינים');
+      return [];
+    }
+  };
+
+  // 🆕 פונקציה חדשה - הוספת משתמשים לקבוצה
+  const addUsersToGroup = async (groupId, userIds) => {
+    try {
+      console.log('➕ [MOCK] Adding users to group:', { groupId, userIds });
+      
+      await simulateNetworkDelay(1200);
+      
+      // בסימולציה - נוסיף את המשתמשים לקבוצה ברשימה המקומית
+      const groupData = MOCK_GROUPS_DETAILED.find(g => g.id === parseInt(groupId));
+      if (!groupData) {
+        throw new Error('Group not found');
+      }
+      
+      // עדכן את המשתמשים שנוספו (בדמה)
+      userIds.forEach(userId => {
+        const user = MOCK_USERS.find(u => u.id === parseInt(userId));
+        if (user && !user.groups.some(g => g.id === parseInt(groupId))) {
+          user.groups.push({ 
+            id: parseInt(groupId), 
+            name: groupData.name 
+          });
+        }
+      });
+      
+      console.log(`✅ [MOCK] Successfully added ${userIds.length} users to group ${groupId}`);
+      return { success: true, addedCount: userIds.length };
+      
+    } catch (error) {
+      console.error('❌ [MOCK] Error adding users to group:', error);
+      alert('שגיאה בהוספת משתמשים לקבוצה');
+      return { success: false, error: error.message };
+    }
+  };
+
   return {
     loading,
     groupsLoading,
@@ -357,8 +418,10 @@ const useServerRequestsMock = () => {
     fetchGroups,
     searchUsers,
     searchGroups,
-    getGroupMembers,  // 🆕 פונקציה חדשה
-    getGroupDetails   // 🆕 פונקציה חדשה
+    getGroupMembers,          // 🆕 פונקציה חדשה
+    getGroupDetails,          // 🆕 פונקציה חדשה
+    getAvailableUsersForGroup, // 🆕 פונקציה חדשה
+    addUsersToGroup           // 🆕 פונקציה חדשה
   };
 };
 

@@ -14,7 +14,7 @@ const SearchModeToggle = ({ searchMode, setSearchMode }) => (
         }`}
       >
         <Users className="w-5 h-5 ml-2" />
-        search users
+        Search users
       </button>
       <button
         onClick={() => setSearchMode('groups')}
@@ -25,7 +25,7 @@ const SearchModeToggle = ({ searchMode, setSearchMode }) => (
         }`}
       >
         <UserCheck className="w-5 h-5 ml-2" />
-        חיפוש קבוצות
+        Search groups
       </button>
     </div>
   </div>

@@ -142,6 +142,57 @@ const useServerRequests = () => {
     }
   };
 
+  // 🆕 פונקציה חדשה - קבלת רשימת משתמשים זמינים להוספה לקבוצה
+  const getAvailableUsersForGroup = async (groupId) => {
+    try {
+      console.log('👤 Fetching available users for group:', groupId);
+      
+      const response = await fetch(`/api/groups/${groupId}/available-users`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch available users');
+      }
+      
+      const availableUsers = await response.json();
+      console.log(`✅ Found ${availableUsers.length} available users for group ${groupId}`);
+      return availableUsers;
+      
+    } catch (error) {
+      console.error('Error fetching available users:', error);
+      alert('שגיאה בטעינת רשימת המשתמשים הזמינים');
+      return [];
+    }
+  };
+
+  // 🆕 פונקציה חדשה - הוספת משתמשים לקבוצה
+  const addUsersToGroup = async (groupId, userIds) => {
+    try {
+      console.log('➕ Adding users to group:', { groupId, userIds });
+      
+      const response = await fetch(`/api/groups/${groupId}/add-users`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userIds }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to add users to group');
+      }
+      
+      const result = await response.json();
+      console.log(`✅ Successfully added ${result.addedCount} users to group ${groupId}`);
+      return result;
+      
+    } catch (error) {
+      console.error('Error adding users to group:', error);
+      alert('שגיאה בהוספת משתמשים לקבוצה');
+      return { success: false, error: error.message };
+    }
+  };
+
   return {
     loading,
     groupsLoading,
@@ -149,8 +200,10 @@ const useServerRequests = () => {
     fetchGroups,
     searchUsers,
     searchGroups,
-    getGroupMembers,  // 🆕 פונקציה חדשה
-    getGroupDetails   // 🆕 פונקציה חדשה
+    getGroupMembers,          // 🆕 פונקציה חדשה
+    getGroupDetails,          // 🆕 פונקציה חדשה
+    getAvailableUsersForGroup, // 🆕 פונקציה חדשה
+    addUsersToGroup           // 🆕 פונקציה חדשה
   };
 };
 

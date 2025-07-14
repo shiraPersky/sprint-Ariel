@@ -7,7 +7,7 @@ const SearchResults = ({ searchMode, users, groups }) => (
     {searchMode === 'users' && (
       <div>
         <h3 className="text-xl font-bold text-gray-800 mb-4">
-          תוצאות חיפוש משתמשים ({users.length})
+          Search results for users ({users.length})
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {users.map(user => (
