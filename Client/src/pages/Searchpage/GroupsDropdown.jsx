@@ -1,13 +1,13 @@
 // קומפוננט Dropdown לקבוצות
-import React from 'react';
-import { Users, ChevronDown, Loader2 } from 'lucide-react';
-const GroupsDropdown = ({ 
-  availableGroups, 
-  selectedGroups, 
-  onGroupChange, 
-  isOpen, 
+import React from "react";
+import { Users, ChevronDown, Loader2 } from "lucide-react";
+const GroupsDropdown = ({
+  availableGroups,
+  selectedGroups,
+  onGroupChange,
+  isOpen,
   toggleOpen,
-  loading 
+  loading,
 }) => (
   <div className="relative">
     <button
@@ -19,7 +19,9 @@ const GroupsDropdown = ({
         <Users className="w-4 h-4 ml-2" />
         קבוצות {selectedGroups.length > 0 && `(${selectedGroups.length})`}
       </span>
-      <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      <ChevronDown
+        className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
+      />
     </button>
     {isOpen && (
       <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
@@ -29,15 +31,18 @@ const GroupsDropdown = ({
             <span className="text-xs text-gray-600 mr-2">טוען...</span>
           </div>
         ) : (
-          availableGroups.map(group => (
-            <label key={group.id} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
+          availableGroups.map((group) => (
+            <label
+              key={group.id_group}
+              className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
+            >
               <input
                 type="checkbox"
-                checked={selectedGroups.includes(group.id)}
-                onChange={() => onGroupChange(group.id)}
+                checked={selectedGroups.includes(group.id_group)}
+                onChange={() => onGroupChange(group.id_group)}
                 className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 ml-2"
               />
-              <span className="text-sm text-gray-700">{group.name}</span>
+              <span className="text-sm text-gray-700">{group.group_name}</span>
             </label>
           ))
         )}
