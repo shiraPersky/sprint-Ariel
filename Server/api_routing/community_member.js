@@ -1,5 +1,6 @@
 import express from 'express';
-import { getMemberById} from '../services/memberService.js';
+import { getMemberById, createMemberWithLinkedIn } from "../services/memberService.js";
+
 
 const router = express.Router();
 
@@ -39,6 +40,24 @@ router.put('/', async (req, res, next) => {
     res.json(result);
   } catch (err) {
     next(err);
+  }
+});
+
+// POST create with linkedin_url
+router.post("/linkedin", async (req, res) => {
+  try {
+    const { linkedin_url } = req.body;
+    console.log('BODY:', req.body);
+    if (!linkedin_url || typeof linkedin_url !== 'string' || !linkedin_url.startsWith('http')) {
+  throw new Error('Invalid LinkedIn URL');
+}
+    const newMember = await createMemberWithLinkedIn(linkedin_url);
+    res
+      .status(201)
+      .json({ id_community_member: newMember.id_community_member });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ message: err.message });
   }
 });
 
