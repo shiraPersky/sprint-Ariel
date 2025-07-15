@@ -1,5 +1,5 @@
 import { useState, useEffect, useReducer } from 'react';
-import axios from 'axios';
+import api from '../api/api';
 
 const dataFetchReducer = (state, action) => {
   switch (action.type) {
@@ -56,7 +56,8 @@ const useDataApi = (initialRequest, initialData = null) => {
           throw new Error('Invalid request format passed to useDataApi');
         }
 
-        const result = await axios(axiosConfig);
+  
+        const result = await api(axiosConfig);
 
         if (!didCancel) {
           dispatch({ type: 'FETCH_SUCCESS', payload: result.data });

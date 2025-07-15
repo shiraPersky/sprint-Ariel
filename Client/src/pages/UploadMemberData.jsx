@@ -14,8 +14,8 @@ function UploadData() {
 
   // אם הצליח וקיבלנו id מהשרת – נווט לעמוד לפי id
   useEffect(() => {
-    if (submitClicked && data && data.id) {
-      navigate(`/member/${data.id}/data/`);
+    if (submitClicked && data && data.id_community_member) {
+      navigate(`/member/${data.id_community_member}/data/`);
     }
   }, [data, submitClicked, navigate]);
 
@@ -33,7 +33,7 @@ function UploadData() {
       setRequest({
         url: '/member',
         method: 'POST',
-        body: { url: linkedinUrl }
+        body: { linkedin_url: linkedinUrl }
       });
     } else if (cvFile) {
       navigate('/member/data/');
