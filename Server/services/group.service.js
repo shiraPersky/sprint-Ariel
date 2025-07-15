@@ -20,3 +20,35 @@ export async function getMembersByGroupId(id_group) {
   const members = await getByIds({ id_group });
   return members;
 }
+
+
+
+export async function getCommonMembersInGroups(groupIds) {
+  const allGroupsMembers = [];
+
+  // Loop through each group ID and fetch its members using getByIds
+  for (const id_group of groupIds) {
+    const membersInGroup = await getByIds({ id_group });
+
+    // Extract only the member IDs from each group
+    const memberIds = membersInGroup.map(m => m.id_community_member);
+
+    // Store the member IDs as a Set for easier intersection
+    allGroupsMembers.push(new Set(memberIds));
+  }
+
+  // Perform intersection across all sets to get common member IDs
+  const commonMemberIds = [...allGroupsMembers.reduce((a, b) => {
+    return new Set([...a].filter(x => b.has(x)));
+  })];
+
+  // Use getByIds again on one group to retrieve full member objects
+  const fullMembers = await getByIds({ id_group: groupIds[0] });
+
+  // Filter out only those whose IDs are in the intersection
+  const filteredMembers = fullMembers
+    .filter(m => commonMemberIds.includes(m.id_community_member))
+    .map(m => m.member); // Return only the member object
+
+  return filteredMembers;
+}
