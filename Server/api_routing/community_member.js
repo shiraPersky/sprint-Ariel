@@ -20,12 +20,23 @@ router.get('/:id', async (req, res,next) => {
     }
 });
 
-
-router.put('/', async (req, res, next) => {
+// PUT /member/:id -> update
+router.put('/:id', async (req, res, next) => {
   try {
-    const id = req.query.id || null;
+    const id = req.params.id;
     const data = req.body;
     const result = await createOrUpdateMember(id, data);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PUT /member -> create
+router.put('/', async (req, res, next) => {
+  try {
+    const data = req.body;
+    const result = await createOrUpdateMember(null, data);
     res.json(result);
   } catch (err) {
     next(err);
