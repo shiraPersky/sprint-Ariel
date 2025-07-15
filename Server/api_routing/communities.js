@@ -40,8 +40,8 @@ router.get("/", async (req, res, next) => {
 
     // Map the relevant fields to return
     const groupsData = groups.map((group) => ({
-      id: group.id,
-      name: group.name,
+      id_group: group.id_group,
+      group_name: group.group_name,
       membersCount: group.members?.length || 0,
     }));
 
