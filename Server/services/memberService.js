@@ -1,7 +1,7 @@
 import { ApifyClient } from "apify-client";
 import communityMemberData from "../dataLayer/communityMember.data.js";
 
-const { getById, getAll, create , update} = communityMemberData;
+const { getById, getAll, create, update } = communityMemberData;
 
 // Initialize the ApifyClient with API token
 const client = new ApifyClient({
@@ -219,43 +219,34 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 }
 
 export async function createOrUpdateMember(id, data) {
-  let parsedId = null;
-
-  // Try to parse the ID if provided
-  if (typeof id === "string" && id.trim() !== "") {
-    parsedId = parseInt(id.trim(), 10); //onverts the id string into an integer, using base 10
-
-    if (!isNaN(parsedId) && parsedId > 0) {
-      const existing = await getById(parsedId);
-
-      if (existing) {
-        //already have a member with this ID
-        // Update the existing member
-        return await update(parsedId, data);
-      }
+  try {
+    // Validate input data
+    if (!data || typeof data !== "object") {
+      const error = new Error("Missing or invalid member data");
+      error.status = 400;
+      throw error;
     }
+
+    if (!data.english_name || typeof data.english_name !== "string") {
+      const error = new Error("english_name is required and must be a string");
+      error.status = 400;
+      throw error;
+    }
+
+    const parsedId = parseInt(id, 10);
+
+    if (!id || isNaN(parsedId) || parsedId < 1) {
+      // CREATE
+      return await communityMemberData.create(data);
+    }
+
+    // UPDATE
+    return await communityMemberData.updateMemberAndRelations(parsedId, data);
+  } catch (error) {
+    console.error(" Error in createOrUpdateMember:", error);
+    throw error;
   }
-  data.english_name = data.english_name || data.fullName || 'Unknown';
-
-  // If no valid ID or not found -> create a new member
-  const newMember = await create(data);
-
-  //remove unwanted fields before returning
-  const {
-    id_community_member,
-    additional_info,
-    admin_notes,
-    years_of_experience,
-    participantEvents,
-    groupMemberships,
-    tags,
-    community_value_id,
-    ...safeData
-  } = newMember;
-
-  return safeData;
 }
- 
 
 
 export async function getAllMembers() {
@@ -264,6 +255,6 @@ export async function getAllMembers() {
     return members;
   } catch (error) {
     // אפשר להוסיף לוג שגיאות פה
-    throw new Error('Failed to retrieve members');
+    throw new Error("Failed to retrieve members");
   }
 }

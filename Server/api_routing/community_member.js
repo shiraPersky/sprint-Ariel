@@ -5,7 +5,7 @@ import { getMemberById, createMemberWithLinkedIn, createOrUpdateMember } from ".
 
 const router = express.Router();
 
-
+//Retrieve a single community member by their id.
 router.get('/:id', async (req, res) => {
     try {
         const id = req.params.id;
@@ -17,7 +17,7 @@ router.get('/:id', async (req, res) => {
 
         res.json(user);
     } catch (err) {
-        next(err); // מפנה ל־errorHandler.js
+        next(err); 
     }
 });
 
