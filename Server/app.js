@@ -24,8 +24,6 @@ app.use('/members', memberRoutes);
 
 //app.use('/manager/search', searchRoutes);
 
-
-app.use('/member', uploadRoutes);
  
 app.use("/communities", communitiesRoutes);
 // routes not found
