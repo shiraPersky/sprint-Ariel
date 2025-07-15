@@ -90,7 +90,7 @@ const uploadExcelFile = async (file) => {
     formData.append('fileName', file.name);
     formData.append('fileSize', file.size);
     
-    const response = await fetch('/api/upload-excel', {
+    const response = await fetch('/pload-excel', {
       method: 'POST',
       body: formData,
       // לא מגדירים Content-Type - הדפדפן יעשה זאת אוטומטי

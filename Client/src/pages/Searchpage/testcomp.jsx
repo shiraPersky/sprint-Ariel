@@ -321,7 +321,66 @@ const getAllGroups = async () => {
       return { success: false, error: error.message };
     }
   };
-
+const uploadExcelFile = async (file) => {
+  try {
+    setLoading(true);
+    console.log('📤 Uploading Excel file:', file.name);
+    
+    // המרת הקובץ ל-base64
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64String = reader.result.split(',')[1]; // מסיר את "data:application/...;base64,"
+        resolve(base64String);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    
+    console.log('📋 File converted to base64, sending...');
+    
+    // שינוי הנתיב ל-/excel/upload-excel
+    const response = await fetch('http://localhost:5000/excel/upload-excel', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        fileData: base64,
+        fileName: file.name,
+        fileSize: file.size
+      })
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Upload failed: ${response.status} - ${errorText}`);
+    }
+    
+    const result = await response.json();
+    console.log('✅ Excel file uploaded successfully:', result);
+    
+    return result;
+    
+  } catch (error) {
+    console.error('❌ Error uploading Excel file:', error);
+    
+    // הודעות שגיאה ידידותיות
+    if (error.message.includes('404')) {
+      alert('שגיאה: נתיב השרת לא נמצא');
+    } else if (error.message.includes('413')) {
+      alert('שגיאה: הקובץ גדול מדי');
+    } else if (error.message.includes('400')) {
+      alert('שגיאה: פורמט קובץ לא נתמך');
+    } else {
+      alert(`שגיאה בהעלאת הקובץ: ${error.message}`);
+    }
+    
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+};
   // const searchUsers = async (searchText, selectedGroups) => {
   //   try {
   //     setLoading(true);
@@ -362,53 +421,7 @@ const getAllGroups = async () => {
   //   }
   // };
 
-const uploadExcelFile = async (file) => {
-  try {
-    setLoading(true);
-    console.log('📤 Uploading Excel file:', file.name);
-    
-    // יצירת FormData
-    const formData = new FormData();
-    formData.append('excelFile', file);
-    formData.append('fileName', file.name);
-    formData.append('fileSize', file.size);
-    
-    const response = await fetch('/api/upload-excel', {
-      method: 'POST',
-      body: formData,
-      // לא מגדירים Content-Type - הדפדפן יעשה זאת אוטומטי
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Upload failed: ${response.status} - ${errorText}`);
-    }
-    
-    const result = await response.json();
-    console.log('✅ Excel file uploaded successfully:', result);
-    
-    return result;
-    
-  } catch (error) {
-    console.error('❌ Error uploading Excel file:', error);
-    
-    // הודעות שגיאה ידידותיות
-    if (error.message.includes('404')) {
-      alert('שגיאה: נתיב השרת לא נמצא');
-    } else if (error.message.includes('413')) {
-      alert('שגיאה: הקובץ גדול מדי');
-    } else if (error.message.includes('400')) {
-      alert('שגיאה: פורמט קובץ לא נתמך');
-    } else {
-      alert(`שגיאה בהעלאת הקובץ: ${error.message}`);
-    }
-    
-    throw error;
-  } finally {
-    setLoading(false);
-  }
-};
-const searchUsers = async (searchText, selectedGroups) => {
+;const searchUsers = async (searchText, selectedGroups) => {
   try {
     setLoading(true);
 

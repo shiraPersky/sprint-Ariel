@@ -78,31 +78,47 @@ const UserSearchComponent = () => {
       return group ? group.name : '';
     }).filter(name => name);
   };
-  const handleSendToServer = async (file) => {
-    try {
-      const result = await uploadExcelFile(file);
-      console.log('📤 File upload result:', result);
-      // הצגת הודעת הצלחה
-      alert(`הקובץ ${file.name} הועלה בהצלחה!`);
-      
-      // אם השרת מחזיר נתונים חדשים, עדכן את הstate
-      if (result.data) {
-        if (result.data.users) {
-          setOriginalUsers(prev => [...prev, ...result.data.users]);
-        }
-        if (result.data.groups) {
-          setOriginalGroups(prev => [...prev, ...result.data.groups]);
-        }
+const handleSendToServer = async (file) => {
+  try {
+    const result = await uploadExcelFile(file);
+    console.log('📤 File upload result:', result);
+    
+    // הצגת הודעת הצלחה
+    alert(`הקובץ ${file.name} הועלה בהצלחה!`);
+    
+    // טען מחדש את כל המשתמשים ועדכן את הstate
+    console.log('🔄 Refreshing users data after upload...');
+    const refreshedUsers = await getAllUsers();
+    setOriginalUsers(refreshedUsers);
+    
+    // טען מחדש את הקבוצות גם
+    console.log('🔄 Refreshing groups data after upload...');
+    const refreshedGroups = await getAllGroups();
+    const groupsArray = refreshedGroups.success ? refreshedGroups.data : [];
+    setOriginalGroups(groupsArray);
+    
+    // נקה את תוצאות החיפוש כדי להציג את כל הנתונים המעודכנים
+    setSearchResults([]);
+    setHasSearched(false);
+    
+    // אם השרת מחזיר נתונים חדשים נוספים, עדכן את הstate
+    if (result.data) {
+      if (result.data.users) {
+        setOriginalUsers(prev => [...prev, ...result.data.users]);
       }
-      
-      return result;
-      
-    } catch (error) {
-      // השגיאה כבר מטופלת ב-hook
-      console.error('Upload failed:', error);
+      if (result.data.groups) {
+        setOriginalGroups(prev => [...prev, ...result.data.groups]);
+      }
     }
-  };
-
+    
+    console.log('✅ Data refreshed successfully after upload');
+    return result;
+    
+  } catch (error) {
+    // השגיאה כבר מטופלת ב-hook
+    console.error('Upload failed:', error);
+  }
+};
   const handleSearch = async () => {
     console.log('🔍 Starting search...', { searchMode, searchText, selectedGroups });
     
@@ -134,6 +150,7 @@ const UserSearchComponent = () => {
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
+    
     if (file) {
       console.log('📎 File uploaded:', file.name);
       alert(`קובץ ${file.name} הועלה בהצלחה! (בפרויקט אמיתי כאן יהיה parsing של האקסל)`);
