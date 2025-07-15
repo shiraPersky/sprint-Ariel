@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import useDataApi from './UseDataApi'; // ודא שהנתיב נכון
 
 export default function EditableUserProfile() {
   const [activeTab, setActiveTab] = useState('contact');
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    fullName: '',
+    title: '',
+    idNumber: '',
     phone: '',
     email: '',
     linkedin: '',
@@ -17,15 +19,17 @@ export default function EditableUserProfile() {
   });
 
   const [originalData, setOriginalData] = useState({});
-  const [isDirty, setIsDirty] = useState(false);
   const [isFinalStep, setIsFinalStep] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
+  const [submitState, setSubmitRequest] = useDataApi(null, null);
+  const { isLoading, isError, data } = submitState;
+
   useEffect(() => {
-    // Load mock data
     const mockData = {
-      firstName: 'Yael',
-      lastName: 'Cohen',
+      fullName: 'Yael Cohen',
+      title: 'Frontend Developer',
+      idNumber: '123456789',
       phone: '052-1234567',
       email: 'user@example.com',
       linkedin: 'https://linkedin.com/in/user',
@@ -40,8 +44,10 @@ export default function EditableUserProfile() {
   }, []);
 
   useEffect(() => {
-    setIsDirty(JSON.stringify(formData) !== JSON.stringify(originalData));
-  }, [formData]);
+    if (isError) {
+      alert('An error occurred while submitting your profile.');
+    }
+  }, [isError]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -61,8 +67,8 @@ export default function EditableUserProfile() {
     }));
   };
 
-  const getInitials = (first, last) =>
-    `${first?.charAt(0) || ''}${last?.charAt(0) || ''}`.toUpperCase();
+  const getInitials = (fullName) =>
+    fullName?.split(' ').map((n) => n[0]).join('').toUpperCase();
 
   const handleUpdateClick = () => {
     setIsFinalStep(true);
@@ -70,7 +76,14 @@ export default function EditableUserProfile() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Final Submitted Data:', formData);
+    if (!formData.contribution.trim()) return;
+
+    setSubmitRequest({
+      url: '//member/data/',
+      method: 'POST',
+      body: formData,
+    });
+
     setIsSubmitted(true);
   };
 
@@ -84,34 +97,45 @@ export default function EditableUserProfile() {
 
   return (
     <div className="container mt-3">
-      {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <div className="d-flex align-items-center">
+        <div className="d-flex align-items-center w-100">
           <div
             className="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-3"
             style={{ width: 60, height: 60, fontSize: 24 }}
           >
-            {getInitials(formData.firstName, formData.lastName)}
+            {getInitials(formData.fullName)}
           </div>
-          <h5 className="m-0">
-            {formData.firstName || formData.lastName
-              ? `${formData.firstName} ${formData.lastName}`
-              : 'Unnamed User'}
-          </h5>
+          <div className="flex-grow-1">
+            <input
+              type="text"
+              name="fullName"
+              className="form-control mb-1"
+              placeholder="Full Name"
+              value={formData.fullName}
+              onChange={handleChange}
+              required
+            />
+            <input
+              type="text"
+              name="title"
+              className="form-control"
+              placeholder="Title (e.g. Developer, Designer)"
+              value={formData.title}
+              onChange={handleChange}
+            />
+          </div>
         </div>
 
         {!isFinalStep && (
-  <button className="btn btn-success" onClick={handleUpdateClick}>
-    Update
-  </button>
-)}
-
+          <button className="btn btn-success ms-3" onClick={handleUpdateClick}>
+            Update
+          </button>
+        )}
       </div>
 
       <form onSubmit={handleSubmit}>
         {!isFinalStep ? (
           <>
-            {/* Tabs */}
             <ul className="nav nav-pills nav-justified mb-3">
               {['contact', 'about', 'experience', 'skills'].map((tab) => (
                 <li className="nav-item" key={tab}>
@@ -131,26 +155,6 @@ export default function EditableUserProfile() {
             <div className="tab-content">
               {activeTab === 'contact' && (
                 <div className="tab-pane active">
-                  <div className="mb-3">
-                    <label>First Name</label>
-                    <input
-                      type="text"
-                      name="firstName"
-                      className="form-control"
-                      value={formData.firstName}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label>Last Name</label>
-                    <input
-                      type="text"
-                      name="lastName"
-                      className="form-control"
-                      value={formData.lastName}
-                      onChange={handleChange}
-                    />
-                  </div>
                   <div className="mb-3">
                     <label>Phone</label>
                     <input
@@ -213,21 +217,13 @@ export default function EditableUserProfile() {
                 <div className="tab-pane active">
                   {formData.experience.map((exp, index) => (
                     <div key={index} className="border rounded p-3 mb-3">
-                      <div className="d-flex align-items-center mb-2">
-                        <div
-                          className="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center me-2"
-                          style={{ width: 40, height: 40 }}
-                        >
-                          {getInitials(exp.firstName, exp.lastName)}
-                        </div>
-                        <input
-                          type="text"
-                          placeholder="Company"
-                          className="form-control"
-                          value={exp.company}
-                          onChange={(e) => handleExperienceChange(index, 'company', e.target.value)}
-                        />
-                      </div>
+                      <input
+                        type="text"
+                        placeholder="Company"
+                        className="form-control mb-2"
+                        value={exp.company}
+                        onChange={(e) => handleExperienceChange(index, 'company', e.target.value)}
+                      />
                       <input
                         type="text"
                         placeholder="Dates"
@@ -237,12 +233,12 @@ export default function EditableUserProfile() {
                       />
                       <textarea
                         placeholder="Description"
-                        className="form-control"
+                        className="form-control mb-2"
                         rows="2"
                         value={exp.description}
                         onChange={(e) => handleExperienceChange(index, 'description', e.target.value)}
                       />
-                      <div className="mt-2 d-flex">
+                      <div className="d-flex">
                         <input
                           type="text"
                           placeholder="First Name"
@@ -300,7 +296,9 @@ export default function EditableUserProfile() {
             </div>
             {formData.contribution.trim() !== '' && (
               <div className="text-center">
-                <button type="submit" className="btn btn-primary px-4">Submit</button>
+                <button type="submit" className="btn btn-primary px-4" disabled={isLoading}>
+                  Submit
+                </button>
               </div>
             )}
           </>
