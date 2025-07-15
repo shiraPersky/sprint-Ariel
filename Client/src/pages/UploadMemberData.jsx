@@ -15,7 +15,7 @@ function UploadData() {
   // אם הצליח וקיבלנו id מהשרת – נווט לעמוד לפי id
   useEffect(() => {
     if (submitClicked && data && data.id_community_member) {
-      navigate(`/member/${data.id_community_member}/data/`);
+      navigate(`/member/linkedin${data.id_community_member}/data/`);
     }
   }, [data, submitClicked, navigate]);
 
