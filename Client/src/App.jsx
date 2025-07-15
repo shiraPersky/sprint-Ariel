@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import AdminViewUserProfile from "./pages/AdminProfileUser";
 import Sidebar from "./pages/Sidebar";   
 import UploadData from "./pages/UploadMemberData";
-
+import GroupDetailsPage from "./pages/GroupDetailsPage/GroupDetailsPage"
 import UserSearchComponent from "./pages/Searchpage/UserSearchComponent";
 import UserProfileForm from "./pages/UserProfileForm";
 import CommunityMembersPage from "./pages/CommunityPage";

@@ -5,8 +5,14 @@ async function create(data) {
   return await prisma.communityMember.create({ data });
 }
 
-async function getAll() {
-  return await prisma.communityMember.findMany();
+// async function getAll() {
+//   return await prisma.communityMember.findMany();
+// }
+
+//generic get all users
+export async function getAll(selectedFields = null) {
+  const query = selectedFields ? { select: selectedFields } : {};
+  return await prisma.communityMember.findMany(query);
 }
 
 async function getById(id) {
