@@ -231,85 +231,6 @@ const useServerRequestsMock = () => {
       setGroupsLoading(false);
     }
   };
-const getAllUsers = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('http://localhost:5000/members/', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch users');
-      }
-      
-      const usersData = await response.json();
-      setLoading(false);
-      return usersData;
-    } catch (error) {
-      console.error('Error searching users:', error);
-      alert('שגיאה בחיפוש משתמשים');
-    }
-  }
-
-
-const getAllGroups = async () => {
-    try {
-      setLoading(true);
-      // const response = await fetch('http://localhost:5000/groups/', {
-      //   method: 'GET',
-      //   headers: { 'Content-Type': 'application/json' },
-      // });
-      
-      // if (!response.ok) {
-      //   throw new Error('Failed to fetch groups');
-      // }
-      
-      // const groupsData = await response.json();
-      const groupsData1=MOCK_GROUPS_DETAILED
-      setLoading(false);
-      return groupsData1;
-    } catch (error) {
-      console.error('Error searching groups:', error);
-      alert('שגיאה בחיפוש קבוצות');
-    }
-  }
-  
-
-  const removeUsersFromGroup = async (groupId, userIds) => {
-    try {
-      console.log('➖ [MOCK] Removing users from group:', { groupId, userIds });
-      
-      await simulateNetworkDelay(1000);
-      
-      // בסימולציה - נסיר את המשתמשים מהקבוצה ברשימה המקומית
-      const groupData = MOCK_GROUPS_DETAILED.find(g => g.id === parseInt(groupId));
-      if (!groupData) {
-        throw new Error('Group not found');
-      }
-      
-      // עדכן את המשתמשים שהוסרו (בדמה)
-      let removedCount = 0;
-      userIds.forEach(userId => {
-        const user = MOCK_USERS.find(u => u.id === parseInt(userId));
-        if (user) {
-          const groupIndex = user.groups.findIndex(g => g.id === parseInt(groupId));
-          if (groupIndex !== -1) {
-            user.groups.splice(groupIndex, 1);
-            removedCount++;
-          }
-        }
-      });
-      
-      console.log(`✅ [MOCK] Successfully removed ${removedCount} users from group ${groupId}`);
-      return { success: true, removedCount };
-      
-    } catch (error) {
-      console.error('❌ [MOCK] Error removing users from group:', error);
-      alert('שגיאה בהסרת משתמשים מהקבוצה');
-      return { success: false, error: error.message };
-    }
-  };
 
   const searchUsers = async (searchText, selectedGroups) => {
     try {
@@ -495,11 +416,8 @@ const getAllGroups = async () => {
     groupsLoading,
     availableGroups,
     fetchGroups,
-    getAllUsers,             // 🆕 פונקציה חדשה
     searchUsers,
     searchGroups,
-    getAllGroups,
-    removeUsersFromGroup,    // 🆕 פונקציה חדשה
     getGroupMembers,          // 🆕 פונקציה חדשה
     getGroupDetails,          // 🆕 פונקציה חדשה
     getAvailableUsersForGroup, // 🆕 פונקציה חדשה

@@ -23,6 +23,8 @@ const UserSearchComponent = () => {
     loading,
     groupsLoading,
     availableGroups,
+    getAllUsers,
+    getAllGroups,
     fetchGroups,
     searchUsers,
     searchGroups
@@ -38,12 +40,12 @@ const UserSearchComponent = () => {
       
       // טען כל המשתמשים לתצוגה ראשונית
       console.log('📋 Loading all users...');
-      const allUsers = await searchUsers('', []); // חיפוש ריק = כל המשתמשים
+      const allUsers = await getAllUsers(); // חיפוש ריק = כל המשתמשים
       setUsers(allUsers);
       
       // טען כל הקבוצות לתצוגה ראשונית
       console.log('👥 Loading all groups...');
-      const allGroups = await searchGroups(''); // חיפוש ריק = כל הקבוצות
+      const allGroups = await getAllGroups(); // חיפוש ריק = כל הקבוצות
       setGroups(allGroups);
       
       console.log('✅ Initial data loaded successfully');
@@ -88,10 +90,10 @@ const UserSearchComponent = () => {
     setIsGroupsDropdownOpen(false);
     
     // החזר את כל הנתונים (כמו בטעינה ראשונית)
-    const allUsers = await searchUsers('', []); // כל המשתמשים
+    const allUsers = await getAllUsers(); // כל המשתמשים
     setUsers(allUsers);
-    
-    const allGroups = await searchGroups(''); // כל הקבוצות
+
+    const allGroups = await getAllGroups(); // כל הקבוצות
     setGroups(allGroups);
     
     console.log('✅ Filters cleared and data reset');

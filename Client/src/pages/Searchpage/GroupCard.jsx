@@ -47,7 +47,7 @@ const GroupCard = ({ group }) => {
           </span>
         )}
       </div>
-      <button 
+      {/* <button 
         className="w-full px-3 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all text-xs font-medium"
         onClick={(e) => {
           e.stopPropagation(); // מונע את הניווט כשלוחצים על הכפתור
@@ -55,7 +55,7 @@ const GroupCard = ({ group }) => {
         }}
       >
         הצטרף לקבוצה
-      </button>
+      </button> */}
     </div>
   );
 };
