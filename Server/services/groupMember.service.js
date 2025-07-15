@@ -29,6 +29,7 @@ export async function addMemberToGroup(id_group, id_community_member) {
 const newGroupMember = await groupMemberData.create({ id_group, id_community_member });  return newGroupMember;
 }
 
+
 export async function removeMemberFromGroup(id_group, id_community_member) {
   if (!id_group || !id_community_member) {
     throw new Error('Group ID and Member ID are required');
