@@ -1,18 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import useDataApi from './UseDataApi'; 
 
 function UploadData() {
   const [linkedinUrl, setLinkedinUrl] = useState('');
   const [cvFile, setCvFile] = useState(null);
+  const [submitClicked, setSubmitClicked] = useState(false);
   const navigate = useNavigate();
 
+  const [state, setRequest] = useDataApi(null);
+
+  const { data, isLoading, isError } = state;
+
+  // אם הצליח וקיבלנו id מהשרת – נווט לעמוד לפי id
+  useEffect(() => {
+    if (submitClicked && data && data.id_community_member) {
+      navigate(`/member/linkedin${data.id_community_member}/data/`);
+    }
+  }, [data, submitClicked, navigate]);
+
+  // אם הייתה שגיאה – הצג למשתמש
+  useEffect(() => {
+    if (submitClicked && isError) {
+      alert('An error occurred while processing your LinkedIn URL.');
+      setSubmitClicked(false);
+    }
+  }, [isError, submitClicked]);
+
   const handleUpload = () => {
-    if (linkedinUrl || cvFile) {
-    
-      navigate('/member/data');
+    if (linkedinUrl) {
+      setSubmitClicked(true);
+      setRequest({
+        url: '/member',
+        method: 'POST',
+        body: { linkedin_url: linkedinUrl }
+      });
+    } else if (cvFile) {
+      navigate('/member/data/');
     } else {
       alert('Please provide either a LinkedIn URL or upload a CV file.');
     }
+  };
+
+  const handleDirectNavigation = () => {
+    navigate('/member/data/');
   };
 
   return (
@@ -42,12 +73,28 @@ function UploadData() {
         />
       </div>
 
+      {isLoading && (
+        <div className="mb-3">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      )}
+
       <button
-        className="btn btn-primary"
+        className="btn btn-primary me-2"
         onClick={handleUpload}
-        disabled={!linkedinUrl && !cvFile}
+        disabled={isLoading || (!linkedinUrl && !cvFile)}
       >
         Upload
+      </button>
+
+      <button
+        className="btn btn-secondary"
+        onClick={handleDirectNavigation}
+        disabled={isLoading}
+      >
+        Go to Data Page
       </button>
     </div>
   );

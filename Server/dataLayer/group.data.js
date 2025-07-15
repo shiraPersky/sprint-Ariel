@@ -7,38 +7,11 @@ async function create(data) {
 
 // Retrieve all groups from the database, including their members
 async function getAll() {
-  try {
-    console.log('🔄 Connecting to database...');
-    
-    // בדיקה פשוטה ראשונה
-    const count = await prisma.group.count();
-    // console.log(`📊 Total groups in DB: ${count}`);
-    
-    if (count === 0) {
-      console.log('⚠️ No groups found in database');
-      return [];
+  return await prisma.group.findMany({
+    include: {
+      members: true // Required to calculate membersCount
     }
-    
-    // קבלת הקבוצות
-    const groups = await prisma.group.findMany({
-      include: {
-        members: true
-      }
-    });
-    
-    // console.log(`✅ Successfully fetched ${groups.length} groups`);
-    console.log('📋 First group:', groups[0]);
-    
-    return groups;
-    
-  } catch (error) {
-    console.error('❌ Database error:', {
-      message: error.message,
-      code: error.code,
-      stack: error.stack
-    });
-    throw error;
-  }
+  });
 }
 
 export { getAll };

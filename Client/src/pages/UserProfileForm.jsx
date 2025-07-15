@@ -1,47 +1,67 @@
-import React, { useState, useEffect } from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import "bootstrap/dist/css/bootstrap.min.css";
+import useDataApi from "./UseDataApi";
 
 export default function EditableUserProfile() {
-  const [activeTab, setActiveTab] = useState('contact');
+  const [activeTab, setActiveTab] = useState("contact");
+  const { id } = useParams();
+
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    phone: '',
-    email: '',
-    linkedin: '',
-    facebook: '',
-    about: '',
-    skills: '',
-    contribution: '',
+    fullName: "",
+    title: "",
+    idNumber: "",
+    phone: "",
+    email: "",
+    linkedin: "",
+    facebook: "",
+    about: "",
+    skills: "",
+    contribution: "",
     experience: [],
   });
 
   const [originalData, setOriginalData] = useState({});
-  const [isDirty, setIsDirty] = useState(false);
   const [isFinalStep, setIsFinalStep] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  useEffect(() => {
-    // Load mock data
-    const mockData = {
-      firstName: 'Yael',
-      lastName: 'Cohen',
-      phone: '052-1234567',
-      email: 'user@example.com',
-      linkedin: 'https://linkedin.com/in/user',
-      facebook: 'https://facebook.com/user',
-      about: 'Lorem ipsum dolor sit amet.',
-      skills: 'React, Design',
-      contribution: '',
-      experience: [],
-    };
-    setFormData(mockData);
-    setOriginalData(mockData);
-  }, []);
+  const [submitState, setSubmitRequest] = useDataApi(null, null);
+  const { isLoading, isError } = submitState;
+
+  const [fetchState, setFetchRequest] = useDataApi(null, null);
 
   useEffect(() => {
-    setIsDirty(JSON.stringify(formData) !== JSON.stringify(originalData));
-  }, [formData]);
+    if (id) {
+      setFetchRequest({
+        url: `/member/${id}`,
+        method: "GET",
+        onSuccess: (data) => {
+          setFormData(data);
+          setOriginalData(data);
+        },
+        onFailure: (error) => {
+          console.error("Failed to fetch profile:", error);
+          alert("שגיאה בטעינת הפרופיל");
+        },
+      });
+    } else {
+      const emptyData = {
+        fullName: "",
+        title: "",
+        idNumber: "",
+        phone: "",
+        email: "",
+        linkedin: "",
+        facebook: "",
+        about: "",
+        skills: "",
+        contribution: "",
+        experience: [],
+      };
+      setFormData(emptyData);
+      setOriginalData(emptyData);
+    }
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -57,12 +77,25 @@ export default function EditableUserProfile() {
   const addExperience = () => {
     setFormData((prev) => ({
       ...prev,
-      experience: [...prev.experience, { company: '', dates: '', description: '', firstName: '', lastName: '' }],
+      experience: [
+        ...prev.experience,
+        {
+          company: "",
+          dates: "",
+          description: "",
+          firstName: "",
+          lastName: "",
+        },
+      ],
     }));
   };
 
-  const getInitials = (first, last) =>
-    `${first?.charAt(0) || ''}${last?.charAt(0) || ''}`.toUpperCase();
+  const getInitials = (fullName) =>
+    fullName
+      ?.split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
 
   const handleUpdateClick = () => {
     setIsFinalStep(true);
@@ -70,8 +103,19 @@ export default function EditableUserProfile() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Final Submitted Data:', formData);
-    setIsSubmitted(true);
+    if (!formData.contribution.trim()) return;
+
+    setSubmitRequest({
+      url: id ? `/member/${id}` : "/member",
+      method: "PUT",
+      body: formData,
+      onSuccess: () => {
+        setIsSubmitted(true);
+      },
+      onFailure: () => {
+        alert("שגיאה בשליחת הפרופיל");
+      },
+    });
   };
 
   if (isSubmitted) {
@@ -84,39 +128,50 @@ export default function EditableUserProfile() {
 
   return (
     <div className="container mt-3">
-      {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <div className="d-flex align-items-center">
+        <div className="d-flex align-items-center w-100">
           <div
             className="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-3"
             style={{ width: 60, height: 60, fontSize: 24 }}
           >
-            {getInitials(formData.firstName, formData.lastName)}
+            {getInitials(formData.fullName)}
           </div>
-          <h5 className="m-0">
-            {formData.firstName || formData.lastName
-              ? `${formData.firstName} ${formData.lastName}`
-              : 'Unnamed User'}
-          </h5>
+          <div className="flex-grow-1">
+            <input
+              type="text"
+              name="fullName"
+              className="form-control mb-1"
+              placeholder="Full Name"
+              value={formData.fullName}
+              onChange={handleChange}
+              required
+            />
+            <input
+              type="text"
+              name="title"
+              className="form-control"
+              placeholder="Title (e.g. Developer, Designer)"
+              value={formData.title}
+              onChange={handleChange}
+            />
+          </div>
         </div>
 
         {!isFinalStep && (
-  <button className="btn btn-success" onClick={handleUpdateClick}>
-    Update
-  </button>
-)}
-
+          <button className="btn btn-success ms-3" onClick={handleUpdateClick}>
+            Update
+          </button>
+        )}
       </div>
 
       <form onSubmit={handleSubmit}>
         {!isFinalStep ? (
           <>
-            {/* Tabs */}
             <ul className="nav nav-pills nav-justified mb-3">
-              {['contact', 'about', 'experience', 'skills'].map((tab) => (
+              {["contact", "about", "experience", "skills"].map((tab) => (
                 <li className="nav-item" key={tab}>
                   <button
-                    className={`nav-link ${activeTab === tab ? 'active' : ''}`}
+                    className={`nav-link ${activeTab === tab ? "active" : ""}`}
                     onClick={(e) => {
                       e.preventDefault();
                       setActiveTab(tab);
@@ -129,28 +184,8 @@ export default function EditableUserProfile() {
             </ul>
 
             <div className="tab-content">
-              {activeTab === 'contact' && (
+              {activeTab === "contact" && (
                 <div className="tab-pane active">
-                  <div className="mb-3">
-                    <label>First Name</label>
-                    <input
-                      type="text"
-                      name="firstName"
-                      className="form-control"
-                      value={formData.firstName}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label>Last Name</label>
-                    <input
-                      type="text"
-                      name="lastName"
-                      className="form-control"
-                      value={formData.lastName}
-                      onChange={handleChange}
-                    />
-                  </div>
                   <div className="mb-3">
                     <label>Phone</label>
                     <input
@@ -194,7 +229,7 @@ export default function EditableUserProfile() {
                 </div>
               )}
 
-              {activeTab === 'about' && (
+              {activeTab === "about" && (
                 <div className="tab-pane active">
                   <div className="mb-3">
                     <label>About</label>
@@ -209,64 +244,86 @@ export default function EditableUserProfile() {
                 </div>
               )}
 
-              {activeTab === 'experience' && (
+              {activeTab === "experience" && (
                 <div className="tab-pane active">
                   {formData.experience.map((exp, index) => (
                     <div key={index} className="border rounded p-3 mb-3">
-                      <div className="d-flex align-items-center mb-2">
-                        <div
-                          className="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center me-2"
-                          style={{ width: 40, height: 40 }}
-                        >
-                          {getInitials(exp.firstName, exp.lastName)}
-                        </div>
-                        <input
-                          type="text"
-                          placeholder="Company"
-                          className="form-control"
-                          value={exp.company}
-                          onChange={(e) => handleExperienceChange(index, 'company', e.target.value)}
-                        />
-                      </div>
+                      <input
+                        type="text"
+                        placeholder="Company"
+                        className="form-control mb-2"
+                        value={exp.company}
+                        onChange={(e) =>
+                          handleExperienceChange(
+                            index,
+                            "company",
+                            e.target.value
+                          )
+                        }
+                      />
                       <input
                         type="text"
                         placeholder="Dates"
                         className="form-control mb-2"
                         value={exp.dates}
-                        onChange={(e) => handleExperienceChange(index, 'dates', e.target.value)}
+                        onChange={(e) =>
+                          handleExperienceChange(index, "dates", e.target.value)
+                        }
                       />
                       <textarea
                         placeholder="Description"
-                        className="form-control"
+                        className="form-control mb-2"
                         rows="2"
                         value={exp.description}
-                        onChange={(e) => handleExperienceChange(index, 'description', e.target.value)}
+                        onChange={(e) =>
+                          handleExperienceChange(
+                            index,
+                            "description",
+                            e.target.value
+                          )
+                        }
                       />
-                      <div className="mt-2 d-flex">
+                      <div className="d-flex">
                         <input
                           type="text"
                           placeholder="First Name"
                           className="form-control me-1"
                           value={exp.firstName}
-                          onChange={(e) => handleExperienceChange(index, 'firstName', e.target.value)}
+                          onChange={(e) =>
+                            handleExperienceChange(
+                              index,
+                              "firstName",
+                              e.target.value
+                            )
+                          }
                         />
                         <input
                           type="text"
                           placeholder="Last Name"
                           className="form-control"
                           value={exp.lastName}
-                          onChange={(e) => handleExperienceChange(index, 'lastName', e.target.value)}
+                          onChange={(e) =>
+                            handleExperienceChange(
+                              index,
+                              "lastName",
+                              e.target.value
+                            )
+                          }
                         />
                       </div>
                     </div>
                   ))}
-                  <button type="button" className="btn btn-outline-primary w-100" onClick={addExperience}>
+                  <button
+                    type="button"
+                    className="btn btn-outline-primary w-100"
+                    onClick={addExperience}
+                  >
                     Add Experience
                   </button>
                 </div>
               )}
 
-              {activeTab === 'skills' && (
+              {activeTab === "skills" && (
                 <div className="tab-pane active">
                   <div className="mb-3">
                     <label>Skills</label>
@@ -278,7 +335,9 @@ export default function EditableUserProfile() {
                       onChange={handleChange}
                       placeholder="e.g. Writing, Design, Marketing"
                     />
-                    <div className="form-text">Separate multiple skills with commas.</div>
+                    <div className="form-text">
+                      Separate multiple skills with commas.
+                    </div>
                   </div>
                 </div>
               )}
@@ -287,7 +346,9 @@ export default function EditableUserProfile() {
         ) : (
           <>
             <div className="mb-3">
-              <label><strong>Community Contribution (Required)</strong></label>
+              <label>
+                <strong>Community Contribution (Required)</strong>
+              </label>
               <textarea
                 name="contribution"
                 className="form-control"
@@ -298,9 +359,15 @@ export default function EditableUserProfile() {
                 placeholder="e.g. Mentoring, Translating, Organizing events"
               />
             </div>
-            {formData.contribution.trim() !== '' && (
+            {formData.contribution.trim() !== "" && (
               <div className="text-center">
-                <button type="submit" className="btn btn-primary px-4">Submit</button>
+                <button
+                  type="submit"
+                  className="btn btn-primary px-4"
+                  disabled={isLoading}
+                >
+                  Submit
+                </button>
               </div>
             )}
           </>
