@@ -1,8 +1,13 @@
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
-async function create(data) {
-  return await prisma.groupMember.create({ data });
+async function create({ id_group, id_community_member }) {
+  return await prisma.groupMember.create({
+    data: {
+      id_community_member,
+      id_group
+    }
+  });
 }
 
 async function getAll() {
