@@ -5,6 +5,7 @@ const router = express.Router();
 
 router.get('/', async (req, res, next) => {
   try {
+    console.log("get all");
     const members = await communityMemberService.getAllMembers();
     res.json(members); 
   } catch (err) {
