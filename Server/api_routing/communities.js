@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllGroups } from '../services/group.service.js';
+import { getAllGroups } from '../services/groupService.js';
 import { addMemberToGroup } from '../services/groupMember.service.js';
 
 
