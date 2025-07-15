@@ -4,7 +4,7 @@ import { getMemberById} from '../services/memberService.js';
 const router = express.Router();
 
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req, res,next) => {
     try {
         const id = req.params.id;
         const user = await getMemberById(id);
@@ -15,7 +15,7 @@ router.get('/:id', async (req, res) => {
 
         res.json(user);
     } catch (err) {
-        next(err); // מפנה ל־errorHandler.js
+        next(err); 
     }
 });
 
