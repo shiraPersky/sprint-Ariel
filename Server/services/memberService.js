@@ -30,15 +30,7 @@ export async function getMemberById(id) {
   return member;
 }
 
-export async function getAllMembers() {
-  try {
-    const members = await getAll();
-    return members;
-  } catch (error) {
-    // אפשר להוסיף לוג שגיאות פה
-    throw new Error("Failed to retrieve members");
-  }
-}
+
 
 /**
  * מקבל מידע מ-LinkedIn באמצעות Apify

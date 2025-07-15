@@ -134,6 +134,7 @@ const UserSearchComponent = () => {
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
+    
     if (file) {
       console.log('📎 File uploaded:', file.name);
       alert(`קובץ ${file.name} הועלה בהצלחה! (בפרויקט אמיתי כאן יהיה parsing של האקסל)`);

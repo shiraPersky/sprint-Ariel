@@ -367,16 +367,29 @@ const uploadExcelFile = async (file) => {
     setLoading(true);
     console.log('📤 Uploading Excel file:', file.name);
     
-    // יצירת FormData
-    const formData = new FormData();
-    formData.append('excelFile', file);
-    formData.append('fileName', file.name);
-    formData.append('fileSize', file.size);
+    // המרת הקובץ ל-base64
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64String = reader.result.split(',')[1]; // מסיר את "data:application/...;base64,"
+        resolve(base64String);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
     
-    const response = await fetch('/api/upload-excel', {
+    console.log('📋 File converted to base64, sending...');
+    
+    const response = await fetch('http://localhost:5000/upload-excel', {
       method: 'POST',
-      body: formData,
-      // לא מגדירים Content-Type - הדפדפן יעשה זאת אוטומטי
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        fileData: base64,
+        fileName: file.name,
+        fileSize: file.size
+      })
     });
     
     if (!response.ok) {
@@ -407,8 +420,7 @@ const uploadExcelFile = async (file) => {
   } finally {
     setLoading(false);
   }
-};
-const searchUsers = async (searchText, selectedGroups) => {
+};const searchUsers = async (searchText, selectedGroups) => {
   try {
     setLoading(true);
 
