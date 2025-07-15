@@ -1,23 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import useDataApi from './UseDataApi';
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import "bootstrap/dist/css/bootstrap.min.css";
+import useDataApi from "./UseDataApi";
 
 export default function EditableUserProfile() {
-  const [activeTab, setActiveTab] = useState('contact');
+  const [activeTab, setActiveTab] = useState("contact");
   const { id } = useParams();
 
   const [formData, setFormData] = useState({
-    fullName: '',
-    title: '',
-    idNumber: '',
-    phone: '',
-    email: '',
-    linkedin: '',
-    facebook: '',
-    about: '',
-    skills: '',
-    contribution: '',
+    fullName: "",
+    title: "",
+    idNumber: "",
+    phone: "",
+    email: "",
+    linkedin: "",
+    facebook: "",
+    about: "",
+    skills: "",
+    contribution: "",
     experience: [],
   });
 
@@ -33,29 +33,29 @@ export default function EditableUserProfile() {
   useEffect(() => {
     if (id) {
       setFetchRequest({
-        url: `/member/data/${id}`,
-        method: 'GET',
+        url: `/member/${id}`,
+        method: "GET",
         onSuccess: (data) => {
           setFormData(data);
           setOriginalData(data);
         },
         onFailure: (error) => {
-          console.error('Failed to fetch profile:', error);
-          alert('שגיאה בטעינת הפרופיל');
+          console.error("Failed to fetch profile:", error);
+          alert("שגיאה בטעינת הפרופיל");
         },
       });
     } else {
       const emptyData = {
-        fullName: '',
-        title: '',
-        idNumber: '',
-        phone: '',
-        email: '',
-        linkedin: '',
-        facebook: '',
-        about: '',
-        skills: '',
-        contribution: '',
+        fullName: "",
+        title: "",
+        idNumber: "",
+        phone: "",
+        email: "",
+        linkedin: "",
+        facebook: "",
+        about: "",
+        skills: "",
+        contribution: "",
         experience: [],
       };
       setFormData(emptyData);
@@ -77,12 +77,25 @@ export default function EditableUserProfile() {
   const addExperience = () => {
     setFormData((prev) => ({
       ...prev,
-      experience: [...prev.experience, { company: '', dates: '', description: '', firstName: '', lastName: '' }],
+      experience: [
+        ...prev.experience,
+        {
+          company: "",
+          dates: "",
+          description: "",
+          firstName: "",
+          lastName: "",
+        },
+      ],
     }));
   };
 
   const getInitials = (fullName) =>
-    fullName?.split(' ').map((n) => n[0]).join('').toUpperCase();
+    fullName
+      ?.split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
 
   const handleUpdateClick = () => {
     setIsFinalStep(true);
@@ -93,14 +106,14 @@ export default function EditableUserProfile() {
     if (!formData.contribution.trim()) return;
 
     setSubmitRequest({
-      url: id ? `/member/data/${id}` : '/member/data/',
-      method: 'POST',
+      url: id ? `/member/${id}` : "/member",
+      method: "PUT",
       body: formData,
       onSuccess: () => {
         setIsSubmitted(true);
       },
       onFailure: () => {
-        alert('שגיאה בשליחת הפרופיל');
+        alert("שגיאה בשליחת הפרופיל");
       },
     });
   };
@@ -155,10 +168,10 @@ export default function EditableUserProfile() {
         {!isFinalStep ? (
           <>
             <ul className="nav nav-pills nav-justified mb-3">
-              {['contact', 'about', 'experience', 'skills'].map((tab) => (
+              {["contact", "about", "experience", "skills"].map((tab) => (
                 <li className="nav-item" key={tab}>
                   <button
-                    className={`nav-link ${activeTab === tab ? 'active' : ''}`}
+                    className={`nav-link ${activeTab === tab ? "active" : ""}`}
                     onClick={(e) => {
                       e.preventDefault();
                       setActiveTab(tab);
@@ -171,7 +184,7 @@ export default function EditableUserProfile() {
             </ul>
 
             <div className="tab-content">
-              {activeTab === 'contact' && (
+              {activeTab === "contact" && (
                 <div className="tab-pane active">
                   <div className="mb-3">
                     <label>Phone</label>
@@ -216,7 +229,7 @@ export default function EditableUserProfile() {
                 </div>
               )}
 
-              {activeTab === 'about' && (
+              {activeTab === "about" && (
                 <div className="tab-pane active">
                   <div className="mb-3">
                     <label>About</label>
@@ -231,7 +244,7 @@ export default function EditableUserProfile() {
                 </div>
               )}
 
-              {activeTab === 'experience' && (
+              {activeTab === "experience" && (
                 <div className="tab-pane active">
                   {formData.experience.map((exp, index) => (
                     <div key={index} className="border rounded p-3 mb-3">
@@ -240,21 +253,35 @@ export default function EditableUserProfile() {
                         placeholder="Company"
                         className="form-control mb-2"
                         value={exp.company}
-                        onChange={(e) => handleExperienceChange(index, 'company', e.target.value)}
+                        onChange={(e) =>
+                          handleExperienceChange(
+                            index,
+                            "company",
+                            e.target.value
+                          )
+                        }
                       />
                       <input
                         type="text"
                         placeholder="Dates"
                         className="form-control mb-2"
                         value={exp.dates}
-                        onChange={(e) => handleExperienceChange(index, 'dates', e.target.value)}
+                        onChange={(e) =>
+                          handleExperienceChange(index, "dates", e.target.value)
+                        }
                       />
                       <textarea
                         placeholder="Description"
                         className="form-control mb-2"
                         rows="2"
                         value={exp.description}
-                        onChange={(e) => handleExperienceChange(index, 'description', e.target.value)}
+                        onChange={(e) =>
+                          handleExperienceChange(
+                            index,
+                            "description",
+                            e.target.value
+                          )
+                        }
                       />
                       <div className="d-flex">
                         <input
@@ -262,25 +289,41 @@ export default function EditableUserProfile() {
                           placeholder="First Name"
                           className="form-control me-1"
                           value={exp.firstName}
-                          onChange={(e) => handleExperienceChange(index, 'firstName', e.target.value)}
+                          onChange={(e) =>
+                            handleExperienceChange(
+                              index,
+                              "firstName",
+                              e.target.value
+                            )
+                          }
                         />
                         <input
                           type="text"
                           placeholder="Last Name"
                           className="form-control"
                           value={exp.lastName}
-                          onChange={(e) => handleExperienceChange(index, 'lastName', e.target.value)}
+                          onChange={(e) =>
+                            handleExperienceChange(
+                              index,
+                              "lastName",
+                              e.target.value
+                            )
+                          }
                         />
                       </div>
                     </div>
                   ))}
-                  <button type="button" className="btn btn-outline-primary w-100" onClick={addExperience}>
+                  <button
+                    type="button"
+                    className="btn btn-outline-primary w-100"
+                    onClick={addExperience}
+                  >
                     Add Experience
                   </button>
                 </div>
               )}
 
-              {activeTab === 'skills' && (
+              {activeTab === "skills" && (
                 <div className="tab-pane active">
                   <div className="mb-3">
                     <label>Skills</label>
@@ -292,7 +335,9 @@ export default function EditableUserProfile() {
                       onChange={handleChange}
                       placeholder="e.g. Writing, Design, Marketing"
                     />
-                    <div className="form-text">Separate multiple skills with commas.</div>
+                    <div className="form-text">
+                      Separate multiple skills with commas.
+                    </div>
                   </div>
                 </div>
               )}
@@ -301,7 +346,9 @@ export default function EditableUserProfile() {
         ) : (
           <>
             <div className="mb-3">
-              <label><strong>Community Contribution (Required)</strong></label>
+              <label>
+                <strong>Community Contribution (Required)</strong>
+              </label>
               <textarea
                 name="contribution"
                 className="form-control"
@@ -312,9 +359,13 @@ export default function EditableUserProfile() {
                 placeholder="e.g. Mentoring, Translating, Organizing events"
               />
             </div>
-            {formData.contribution.trim() !== '' && (
+            {formData.contribution.trim() !== "" && (
               <div className="text-center">
-                <button type="submit" className="btn btn-primary px-4" disabled={isLoading}>
+                <button
+                  type="submit"
+                  className="btn btn-primary px-4"
+                  disabled={isLoading}
+                >
                   Submit
                 </button>
               </div>
