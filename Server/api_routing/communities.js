@@ -6,6 +6,7 @@ import {
 } from "../services/groupMember.service.js";
 
 import { getMembersNotInGroup } from '../services/groupMember.service.js';
+import { getMembersByGroupId } from '../services/groupService.js';
 
 
 
@@ -32,7 +33,7 @@ router.get('/group/:id/members-not-in', async (req, res, next) => {
   }
 });
 
-// GET all groups with selected fields
+// GET all groups (return only id_group, group_name , membersCount)
 router.get("/", async (req, res, next) => {
   try {
     // Get all groups from the service layer

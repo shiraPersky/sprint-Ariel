@@ -1,6 +1,6 @@
 import groupData from '../dataLayer/group.data.js';
 
-import getByIds from '../dataLayer/groupMember.data.js';
+import groupMemberData from '../dataLayer/groupMember.data.js';
 
 
 
@@ -14,12 +14,12 @@ export async function getAllGroups() {
 
 
 
-// Service function to get members by group ID
+// Service function to get members of specific group(by group ID)
 export async function getMembersByGroupId(id_group) {
   if (!id_group) {
     throw new Error('Group ID must be provided');
   }
-  const members = await getByIds({ id_group });
+  const members = await groupMemberData.getByIds({ id_group });
   return members;
 }
 
