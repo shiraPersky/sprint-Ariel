@@ -14,18 +14,14 @@ app.use(express.json());
 
 // CORS setup: allow frontend to talk to backend
 app.use(cors({
-     origin: '*', //("for time of dev")
-//   origin: 'http://0.0.0.0:3000', 
-//   credentials: true, 
+     origin: 'http://localhost:5173',
+      credentials: true
 }));
 
 app.use('/member', communityMemberRoutes); 
 app.use('/members', memberRoutes);
 
 //app.use('/manager/search', searchRoutes);
-
-
-app.use('/member', uploadRoutes);
  
 app.use("/communities", communitiesRoutes);
 // routes not found
