@@ -245,6 +245,7 @@ export async function createOrUpdateMember(id, data) {
       }
     }
   }
+  data.english_name = data.english_name || data.fullName || 'Unknown';
 
   // If no valid ID or not found -> create a new member
   const newMember = await create(data);
