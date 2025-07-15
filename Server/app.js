@@ -8,6 +8,9 @@ import memberRoutes from './api_routing/members.js';
 
 //import searchRoutes from './api_routing/search.js';
 import uploadRoutes from './api_routing/upload.js';
+
+import communitiesRoutes from './api_routing/communities.js'
+
 const app = express();
 app.use(express.json());
 
@@ -20,16 +23,19 @@ app.use(cors({
 
 app.use('/member', communityMemberRoutes); 
 app.use('/members', memberRoutes);
+
 //app.use('/manager/search', searchRoutes);
 
 
-app.use('/member', uploadRoutes)
+app.use('/member', uploadRoutes);
+ 
+app.use("/communities", communitiesRoutes);
 // routes not found
 app.use((req, res, next) => {
     const error = new Error('Not Found');
     error.status = 404;
     next(error);
 });
-// ה־middleware שמטפל בשגיאות
+// ־middleware 
 app.use(errorHandler);
 export default app;

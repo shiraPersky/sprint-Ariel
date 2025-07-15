@@ -5,9 +5,16 @@ async function create(data) {
   return await prisma.group.create({ data });
 }
 
+// Retrieve all groups from the database, including their members
 async function getAll() {
-  return await prisma.group.findMany();
+  return await prisma.group.findMany({
+    include: {
+      members: true // Required to calculate membersCount
+    }
+  });
 }
+
+export { getAll };
 
 async function getById(id) {
   return await prisma.group.findUnique({
