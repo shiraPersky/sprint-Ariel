@@ -1,4 +1,4 @@
-// GroupDetailsPage.js - דף פרטי קבוצה עם רשימת חברים - מעודכן עם מחיקה
+// GroupDetailsPage.js - דף פרטי קבוצה עם רשימת חברים - עם קריאת API אמיתית
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowRight, Users, Building, Tag, Loader2, UserPlus, UserMinus, Trash2, X } from 'lucide-react';
@@ -20,11 +20,67 @@ const GroupDetailsPage = () => {
 
   const { 
     getGroupDetails, 
-    getGroupMembers, 
     getAvailableUsersForGroup, 
     addUsersToGroup,
     removeUsersFromGroup
   } = useServerRequestsMock();
+
+  // פונקציה לטעינת חברי הקבוצה מהשרת
+  const getGroupMembers = async (groupId) => {
+    try {
+      console.log('🔄 Fetching group members for group:', groupId);
+      
+      const response = await fetch(`http://localhost:5000/communities/group/${groupId}/members`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Group members API Response:', result);
+
+      if (result.success) {
+        // המר את הנתונים מהשרת לפורמט שהקומפוננט מצפה לו
+        const formattedMembers = result.data.map(memberData => {
+          const member = memberData.member;
+          return {
+            id: member.id_community_member,
+            english_name: member.english_name,
+            position: member.title,
+            company: member.about, // או שדה אחר שמתאים לחברה
+            email: member.email,
+            phone: member.phone,
+            city: member.city,
+            linkedin_url: member.linkedin_url,
+            facebook_url: member.facebook_url,
+            additional_info: member.additional_info,
+            years_of_experience: member.years_of_experience,
+            wants_updates: member.wants_updates,
+            active: member.active,
+            admin_notes: member.admin_notes,
+            community_value_id: member.community_value_id,
+            // שדות נוספים לתצוגה טובה יותר
+            image: member.image || '/api/placeholder/400/400', // תמונת ברירת מחדל
+            description: member.additional_info || member.about
+          };
+        });
+
+        console.log('✅ Formatted members:', formattedMembers);
+        return formattedMembers;
+      } else {
+        console.error('❌ API returned error:', result);
+        return [];
+      }
+    } catch (error) {
+      console.error('❌ Error fetching group members:', error);
+      throw error;
+    }
+  };
 
   const handleUsersAdded = async () => {
     try {
@@ -33,6 +89,7 @@ const GroupDetailsPage = () => {
       setMembers(updatedMembers);
     } catch (error) {
       console.error('Error reloading members:', error);
+      alert('שגיאה בטעינת רשימת החברים המעודכנת');
     } finally {
       setMembersLoading(false);
     }
@@ -76,7 +133,7 @@ const GroupDetailsPage = () => {
       );
     } else {
       // במצב רגיל - עבור לדף המשתמש
-      navigate(`/user/${user.id}`);
+      navigate(`/member/${user.id}/data`);
     }
   };
 
@@ -203,7 +260,7 @@ const GroupDetailsPage = () => {
               <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                 <div className="flex items-center">
                   <Users className="w-4 h-4 ml-2" />
-                  <span>{group.members.toLocaleString()} חברים</span>
+                  <span>{members.length} חברים</span>
                 </div>
                 <div className="flex items-center">
                   <Building className="w-4 h-4 ml-2" />
@@ -218,7 +275,7 @@ const GroupDetailsPage = () => {
                   <span className="text-sm font-medium text-gray-700">תגיות:</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {group.tags.map((tag, index) => (
+                  {group.tags && group.tags.map((tag, index) => (
                     <span key={index} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
                       {tag}
                     </span>
@@ -226,13 +283,6 @@ const GroupDetailsPage = () => {
                 </div>
               </div>
             </div>
-            
-            {/* כפתור הצטרפות */}
-            {/* <div className="flex-shrink-0">
-              <button className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all font-medium">
-                הצטרף לקבוצה
-              </button>
-            </div> */}
           </div>
         </div>
 
@@ -381,6 +431,13 @@ const GroupDetailsPage = () => {
             <div className="text-center py-12">
               <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
               <p className="text-gray-500 text-lg">אין חברים בקבוצה זו כרגע</p>
+              <button
+                onClick={() => setShowAddUsersModal(true)}
+                className="mt-4 flex items-center mx-auto px-4 py-2 bg-gradient-to-r from-green-500 to-blue-600 text-white rounded-lg hover:from-green-600 hover:to-blue-700 transition-all"
+              >
+                <UserPlus className="w-5 h-5 ml-2" />
+                הוסף משתמשים ראשונים
+              </button>
             </div>
           )}
         </div>
@@ -391,7 +448,6 @@ const GroupDetailsPage = () => {
           onClose={() => setShowAddUsersModal(false)}
           groupId={groupId}
           groupName={group?.name}
-          getAvailableUsers={getAvailableUsersForGroup}
           addUsersToGroup={addUsersToGroup}
           onUsersAdded={handleUsersAdded}
         />

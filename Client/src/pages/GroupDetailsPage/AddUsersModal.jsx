@@ -1,4 +1,4 @@
-// AddUsersModal.js - מודל להוספת משתמשים לקבוצה - מתוקן
+// AddUsersModal.js - מודל להוספת משתמשים לקבוצה - עם קריאת API אמיתית
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Search, Loader2, UserPlus, Check } from 'lucide-react';
 
@@ -7,7 +7,6 @@ const AddUsersModal = ({
   onClose, 
   groupId, 
   groupName, 
-  getAvailableUsers, 
   addUsersToGroup,
   onUsersAdded 
 }) => {
@@ -17,12 +16,60 @@ const AddUsersModal = ({
   const [adding, setAdding] = useState(false);
   const [searchText, setSearchText] = useState('');
 
+  // פונקציה לטעינת משתמשים זמינים מהשרת
+  const getAvailableUsers = async (groupId) => {
+    try {
+      console.log('🔄 Fetching available users for group:', groupId);
+      
+      const response = await fetch(`http://localhost:5000/communities/group/${groupId}/members-not-in`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ API Response:', result);
+
+      if (result.success) {
+        // המר את הנתונים מהשרת לפורמט שהקומפוננט מצפה לו
+        const formattedUsers = result.data.map(user => ({
+          id: user.id_community_member,
+          name: user.english_name,
+          position: user.title,
+          company: user.about, // או שדה אחר שמתאים לחברה
+          email: user.email,
+          phone: user.phone,
+          city: user.city,
+          linkedin_url: user.linkedin_url,
+          facebook_url: user.facebook_url,
+          years_of_experience: user.years_of_experience,
+          wants_updates: user.wants_updates,
+          active: user.active
+        }));
+
+        console.log('✅ Formatted users:', formattedUsers);
+        return formattedUsers;
+      } else {
+        console.error('❌ API returned error:', result);
+        return [];
+      }
+    } catch (error) {
+      console.error('❌ Error fetching available users:', error);
+      throw error;
+    }
+  };
+
   // טען משתמשים זמינים כשהמודל נפתח
   useEffect(() => {
-    if (isOpen && groupId && getAvailableUsers) {
+    if (isOpen && groupId) {
       loadAvailableUsers();
     }
-  }, [isOpen, groupId, getAvailableUsers]);
+  }, [isOpen, groupId]);
 
   const loadAvailableUsers = async () => {
     try {
@@ -36,6 +83,8 @@ const AddUsersModal = ({
     } catch (error) {
       console.error('❌ Error loading available users:', error);
       setAvailableUsers([]);
+      // הצג הודעת שגיאה למשתמש
+      alert('שגיאה בטעינת רשימת המשתמשים. אנא נסה שוב.');
     } finally {
       setLoading(false);
     }
@@ -49,7 +98,9 @@ const AddUsersModal = ({
     return (
       user.name?.toLowerCase().includes(searchLower) ||
       user.position?.toLowerCase().includes(searchLower) ||
-      user.company?.toLowerCase().includes(searchLower)
+      user.company?.toLowerCase().includes(searchLower) ||
+      user.email?.toLowerCase().includes(searchLower) ||
+      user.city?.toLowerCase().includes(searchLower)
     );
   });
 
@@ -178,7 +229,7 @@ const AddUsersModal = ({
             <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
-              placeholder="חפש משתמשים לפי שם, תפקיד או חברה..."
+              placeholder="חפש משתמשים לפי שם, תפקיד, חברה או אימייל..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               className="w-full pl-12 pr-12 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
@@ -250,7 +301,12 @@ const AddUsersModal = ({
                       <div className="flex-1 min-w-0">
                         <h3 className="font-bold text-gray-800 truncate">{user.name || 'ללא שם'}</h3>
                         <p className="text-blue-600 text-sm truncate">{user.position || 'ללא תפקיד'}</p>
-                        <p className="text-gray-500 text-sm truncate">{user.company || 'ללא חברה'}</p>
+                        {user.email && (
+                          <p className="text-gray-500 text-sm truncate">{user.email}</p>
+                        )}
+                        {user.city && (
+                          <p className="text-gray-400 text-xs truncate">{user.city}</p>
+                        )}
                       </div>
                       <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ml-3 ${
                         isSelected 
