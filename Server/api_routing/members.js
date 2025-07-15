@@ -13,6 +13,13 @@ router.get('/', async (req, res, next) => {
     next(err); 
   }
 });
+router.post('/search/groups', async (req, res, next) => {
+  try {
+    const { groupIds } = req.body;
+    console.log('Searching common members in groups:', groupIds);
+    if (!Array.isArray(groupIds) || groupIds.length < 2) {
+      return res.status(400).json({ success: false, error: 'Please provide at least two group IDs' });
+    }
 
 router.post('/search/groups', async (req, res, next) => {
   try {

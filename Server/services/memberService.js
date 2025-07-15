@@ -265,3 +265,15 @@ export async function createOrUpdateMember(id, data) {
 
   return safeData;
 }
+ 
+
+
+export async function getAllMembers() {
+  try {
+    const members = await getAll();
+    return members;
+  } catch (error) {
+    // אפשר להוסיף לוג שגיאות פה
+    throw new Error('Failed to retrieve members');
+  }
+}
