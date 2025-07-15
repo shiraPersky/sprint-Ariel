@@ -8,7 +8,7 @@ export default function EditableUserProfile() {
   const { id } = useParams();
 
   const [formData, setFormData] = useState({
-    fullName: "",
+    english_name: "",
     title: "",
     idNumber: "",
     phone: "",
@@ -29,24 +29,42 @@ export default function EditableUserProfile() {
   const { isLoading, isError } = submitState;
 
   const [fetchState, setFetchRequest] = useDataApi(null, null);
+const formatSkillsToString = (skillsArray) => {
+  if (!Array.isArray(skillsArray)) return '';
+  return skillsArray.map((skill) => skill.description).join(', ');
+};
 
   useEffect(() => {
     if (id) {
-      setFetchRequest({
-        url: `/member/${id}`,
+      // בקשה רגילה עם fetch
+      fetch(`http://localhost:5000/member/${id}`, {
         method: "GET",
-        onSuccess: (data) => {
-          setFormData(data);
-          setOriginalData(data);
+        headers: {
+          "Content-Type": "application/json",
         },
-        onFailure: (error) => {
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((data) => {
+          console.log("Fetched profile data:", data);
+          const formattedSkills = formatSkillsToString(data.skills);
+            setFormData({
+            ...data,
+            skills: formattedSkills
+          });
+          setOriginalData(data);
+        })
+        .catch((error) => {
           console.error("Failed to fetch profile:", error);
           alert("שגיאה בטעינת הפרופיל");
-        },
-      });
+        });
     } else {
       const emptyData = {
-        fullName: "",
+        english_name: "",
         title: "",
         idNumber: "",
         phone: "",
@@ -61,7 +79,7 @@ export default function EditableUserProfile() {
       setFormData(emptyData);
       setOriginalData(emptyData);
     }
-  }, [id]);
+  }, [id]); // הוספתי את id כתלות
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -142,7 +160,7 @@ export default function EditableUserProfile() {
               name="fullName"
               className="form-control mb-1"
               placeholder="Full Name"
-              value={formData.fullName}
+              value={formData.english_name}
               onChange={handleChange}
               required
             />
