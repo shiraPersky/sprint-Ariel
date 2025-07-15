@@ -3,7 +3,9 @@ import communityMemberData from "../dataLayer/communityMember.data.js";
 import linkedinDataLayer from "../dataLayer/linkedin.data.js";
 
 const { getById, getAll, create, update } = communityMemberData;
+
 const { convertLinkedInToCommunityMember, processLinkedInProfile, findMemberByLinkedIn } = linkedinDataLayer;
+
 
 // Initialize the ApifyClient with API token
 const client = new ApifyClient({
@@ -268,14 +270,26 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 }
 
 export async function createOrUpdateMember(id, data) {
-  let parsedId = null;
+  try {
+    // Validate input data
+    if (!data || typeof data !== "object") {
+      const error = new Error("Missing or invalid member data");
+      error.status = 400;
+      throw error;
+    }
+
+    if (!data.english_name || typeof data.english_name !== "string") {
+      const error = new Error("english_name is required and must be a string");
+      error.status = 400;
+      throw error;
+    }
 
   // Try to parse the ID if provided
   if (typeof id === "string" && id.trim() !== "") {
     parsedId = parseInt(id.trim(), 10);
 
-    if (!isNaN(parsedId) && parsedId > 0) {
-      const existing = await getById(parsedId);
+    const parsedId = parseInt(id, 10);
+
 
       if (existing) {
         // אם יש נתוני LinkedIn, נעבד אותם דרך הפונקציה המתאימה
@@ -293,7 +307,15 @@ export async function createOrUpdateMember(id, data) {
         return await update(parsedId, data);
       }
     }
+
+    // UPDATE
+    return await communityMemberData.updateMemberAndRelations(parsedId, data);
+  } catch (error) {
+    console.error(" Error in createOrUpdateMember:", error);
+    throw error;
   }
+}
+
 
   // הכנת השם
   data.english_name = data.english_name || data.fullName || data.name || 'Unknown';
@@ -333,6 +355,7 @@ export async function getAllMembers() {
     const members = await getAll();
     return members;
   } catch (error) {
+
     throw new Error('Failed to retrieve members');
   }
 }

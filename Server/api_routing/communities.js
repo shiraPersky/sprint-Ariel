@@ -102,6 +102,7 @@ router.post("/add-member", async (req, res, next) => {
     next(error);
   }
 });
+
 //deletemember by id_group, id_community_member
 router.delete("/remove-member", async (req, res, next) => {
   try {
