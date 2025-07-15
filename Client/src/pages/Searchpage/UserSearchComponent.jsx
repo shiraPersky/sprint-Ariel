@@ -1,4 +1,4 @@
-// הקומפוננט הראשי - מעודכן עם טעינת נתונים ראשונית
+// הקומפוננט הראשי - מעודכן עם טעינת נתונים ראשונית ותיקון לוגיקת החיפוש
 import React, { useState, useEffect } from 'react';
 import { Search, Users, UserCheck, Upload, Filter, MapPin, Briefcase, GraduationCap, Calendar, Building, Award, ChevronDown, Loader2 } from 'lucide-react';
 // import useServerRequests from './useServerRequests';
@@ -15,16 +15,26 @@ const UserSearchComponent = () => {
   const [searchMode, setSearchMode] = useState('users');
   const [searchText, setSearchText] = useState('');
   const [selectedGroups, setSelectedGroups] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [groups, setGroups] = useState([]);
+  
+  // נתונים מקוריים (נטענים פעם אחת)
+  const [originalUsers, setOriginalUsers] = useState([]);
+  const [originalGroups, setOriginalGroups] = useState([]);
+  
+  // תוצאות חיפוש
+  const [searchResults, setSearchResults] = useState([]);
+  const [hasSearched, setHasSearched] = useState(false);
+  
   const [isGroupsDropdownOpen, setIsGroupsDropdownOpen] = useState(false);
 
   const {
     loading,
     groupsLoading,
     availableGroups,
+    getAllUsers,
+    getAllGroups,
     fetchGroups,
     searchUsers,
+    uploadExcelFile,
     searchGroups
   } = useServerRequestsMock();
 
@@ -38,14 +48,16 @@ const UserSearchComponent = () => {
       
       // טען כל המשתמשים לתצוגה ראשונית
       console.log('📋 Loading all users...');
-      const allUsers = await searchUsers('', []); // חיפוש ריק = כל המשתמשים
-      setUsers(allUsers);
+      const allUsers = await getAllUsers();
+      setOriginalUsers(allUsers);
       
       // טען כל הקבוצות לתצוגה ראשונית
       console.log('👥 Loading all groups...');
-      const allGroups = await searchGroups(''); // חיפוש ריק = כל הקבוצות
-      setGroups(allGroups);
-      
+      const allGroups = await getAllGroups();
+      const groupsArray = allGroups.success ? allGroups.data : [];
+      console.log('Retrieved groups:11111', groupsArray);
+      setOriginalGroups(groupsArray);
+
       console.log('✅ Initial data loaded successfully');
     };
     
@@ -66,17 +78,45 @@ const UserSearchComponent = () => {
       return group ? group.name : '';
     }).filter(name => name);
   };
+  const handleSendToServer = async (file) => {
+    try {
+      const result = await uploadExcelFile(file);
+      console.log('📤 File upload result:', result);
+      // הצגת הודעת הצלחה
+      alert(`הקובץ ${file.name} הועלה בהצלחה!`);
+      
+      // אם השרת מחזיר נתונים חדשים, עדכן את הstate
+      if (result.data) {
+        if (result.data.users) {
+          setOriginalUsers(prev => [...prev, ...result.data.users]);
+        }
+        if (result.data.groups) {
+          setOriginalGroups(prev => [...prev, ...result.data.groups]);
+        }
+      }
+      
+      return result;
+      
+    } catch (error) {
+      // השגיאה כבר מטופלת ב-hook
+      console.error('Upload failed:', error);
+    }
+  };
 
   const handleSearch = async () => {
     console.log('🔍 Starting search...', { searchMode, searchText, selectedGroups });
     
     if (searchMode === 'users') {
       const results = await searchUsers(searchText, selectedGroups);
-      setUsers(results);
+
+      console.log('📊 Search results:', results);
+      setSearchResults(results.data || []);
     } else {
       const results = await searchGroups(searchText);
-      setGroups(results);
+      setSearchResults(results);
     }
+    
+    setHasSearched(true);
   };
 
   const clearFilters = async () => {
@@ -86,13 +126,8 @@ const UserSearchComponent = () => {
     setSearchText('');
     setSelectedGroups([]);
     setIsGroupsDropdownOpen(false);
-    
-    // החזר את כל הנתונים (כמו בטעינה ראשונית)
-    const allUsers = await searchUsers('', []); // כל המשתמשים
-    setUsers(allUsers);
-    
-    const allGroups = await searchGroups(''); // כל הקבוצות
-    setGroups(allGroups);
+    setSearchResults([]);
+    setHasSearched(false);
     
     console.log('✅ Filters cleared and data reset');
   };
@@ -104,6 +139,23 @@ const UserSearchComponent = () => {
       alert(`קובץ ${file.name} הועלה בהצלחה! (בפרויקט אמיתי כאן יהיה parsing של האקסל)`);
     }
   };
+
+  // קבע איזה נתונים להציג
+  const getDisplayData = () => {
+    if (hasSearched) {
+      return {
+        users: searchMode === 'users' ? searchResults : [],
+        groups: searchMode === 'groups' ? searchResults : []
+      };
+    }
+    
+    return {
+      users: originalUsers,
+      groups: originalGroups
+    };
+  };
+
+  const displayData = getDisplayData();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -139,12 +191,12 @@ const UserSearchComponent = () => {
 
           <SearchResults 
             searchMode={searchMode}
-            users={users}
-            groups={groups}
+            users={displayData.users}
+            groups={displayData.groups}
           />
         </div>
 
-        <FileUpload onFileUpload={handleFileUpload} />
+        <FileUpload onFileUpload={handleFileUpload} onSendToServer={handleSendToServer} />
       </div>
     </div>
   );

@@ -29,17 +29,36 @@ const useServerRequests = () => {
       setGroupsLoading(false);
     }
   };
-
+  const getAllUsers = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:5000/members/', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
+      }
+      
+      const usersData = await response.json();
+      return usersData;
+    } catch (error) {
+      console.error('Error searching users:', error);
+      alert('שגיאה בחיפוש משתמשים');
+    }
+  }
   const searchUsers = async (searchText, selectedGroups) => {
     try {
       setLoading(true);
       
-      const searchParams = {
-        searchText: searchText.trim(),
-        groupIds: selectedGroups
-      };
-      
-      const response = await fetch('/api/users/search', {
+      // const searchParams = {
+      //   searchText: searchText.trim(),
+      //   groupIds: selectedGroups
+      // };
+      const searchParams = { groupIds: selectedGroups };
+
+      const response = await fetch('/members/search/groups', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(searchParams),
@@ -60,7 +79,52 @@ const useServerRequests = () => {
       setLoading(false);
     }
   };
-
+const uploadExcelFile = async (file) => {
+  try {
+    setLoading(true);
+    console.log('📤 Uploading Excel file:', file.name);
+    
+    // יצירת FormData
+    const formData = new FormData();
+    formData.append('excelFile', file);
+    formData.append('fileName', file.name);
+    formData.append('fileSize', file.size);
+    
+    const response = await fetch('/api/upload-excel', {
+      method: 'POST',
+      body: formData,
+      // לא מגדירים Content-Type - הדפדפן יעשה זאת אוטומטי
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Upload failed: ${response.status} - ${errorText}`);
+    }
+    
+    const result = await response.json();
+    console.log('✅ Excel file uploaded successfully:', result);
+    
+    return result;
+    
+  } catch (error) {
+    console.error('❌ Error uploading Excel file:', error);
+    
+    // הודעות שגיאה ידידותיות
+    if (error.message.includes('404')) {
+      alert('שגיאה: נתיב השרת לא נמצא');
+    } else if (error.message.includes('413')) {
+      alert('שגיאה: הקובץ גדול מדי');
+    } else if (error.message.includes('400')) {
+      alert('שגיאה: פורמט קובץ לא נתמך');
+    } else {
+      alert(`שגיאה בהעלאת הקובץ: ${error.message}`);
+    }
+    
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+};
   const searchGroups = async (searchText) => {
     try {
       setLoading(true);
@@ -192,6 +256,30 @@ const useServerRequests = () => {
       return { success: false, error: error.message };
     }
   };
+  const removeUsersFromGroup = async (groupId, userIds) => {
+    try {
+      console.log('➖ Removing users from group:', { groupId, userIds });
+      
+      const response = await fetch(`/api/groups/${groupId}/remove-users`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userIds }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to remove users from group');
+      }
+      
+      const result = await response.json();
+      console.log(`✅ Successfully removed ${result.removedCount} users from group ${groupId}`);
+      return result;
+      
+    } catch (error) {
+      console.error('Error removing users from group:', error);
+      alert('שגיאה בהסרת משתמשים מהקבוצה');
+      return { success: false, error: error.message };
+    }
+  };
 
   return {
     loading,
@@ -203,7 +291,8 @@ const useServerRequests = () => {
     getGroupMembers,          // 🆕 פונקציה חדשה
     getGroupDetails,          // 🆕 פונקציה חדשה
     getAvailableUsersForGroup, // 🆕 פונקציה חדשה
-    addUsersToGroup           // 🆕 פונקציה חדשה
+    addUsersToGroup,         // 🆕 פונקציה חדשה
+    removeUsersFromGroup     // 🆕 פונקציה חדשה
   };
 };
 

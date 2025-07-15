@@ -5,8 +5,35 @@ async function create(data) {
   return await prisma.communityMember.create({ data });
 }
 
-async function getAll() {
-  return await prisma.communityMember.findMany();
+// async function getAll() {
+//   return await prisma.communityMember.findMany();
+// }
+
+// //generic get all users
+// export async function getAll(selectedFields = null) {
+//   const query = selectedFields ? { select: selectedFields } : {};
+//   return await prisma.communityMember.findMany(query);
+// }
+
+// Get all community members
+export async function getAll(selectedFields = null) {
+  if (selectedFields) {
+    // Return only selected fields if provided
+    return await prisma.communityMember.findMany({
+      select: selectedFields
+    });
+  }
+
+  // Default: return full user info + group memberships + group details
+  return await prisma.communityMember.findMany({
+    include: {
+      groupMemberships: {
+        include: {
+          group: true // Include the full group object (e.g. id, name, etc.)
+        }
+      }
+    }
+  });
 }
 
 async function getById(id) {
