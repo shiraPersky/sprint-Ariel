@@ -228,40 +228,83 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   testLinkedInScraping();
 }
 
+function prepareDataForPrisma(data, isUpdate = false) {
+  const {
+    skills,
+    participantValues,
+    jobs,
+    ...rest
+  } = data;
+
+  const prismaData = { ...rest };
+
+  if (Array.isArray(skills)) {
+    prismaData.skills = isUpdate
+      ? {
+          deleteMany: {},
+          create: skills.map(description => ({ description })),
+        }
+      : {
+          create: skills.map(description => ({ description })),
+        };
+  }
+
+  if (Array.isArray(participantValues)) {
+    prismaData.participantValues = isUpdate
+      ? {
+          deleteMany: {},
+          create: participantValues.map(({ id_community_value, description }) => ({
+            id_community_value,
+            description,
+          })),
+        }
+      : {
+          create: participantValues.map(({ id_community_value, description }) => ({
+            id_community_value,
+            description,
+          })),
+        };
+  }
+
+  if (Array.isArray(jobs)) {
+    prismaData.jobs = isUpdate
+      ? {
+          deleteMany: {},
+          create: jobs.map(job => ({
+            ...job,
+            start_date: job.start_date ? new Date(job.start_date) : undefined,
+            end_date: job.end_date ? new Date(job.end_date) : undefined,
+          })),
+        }
+      : {
+          create: jobs.map(job => ({
+            ...job,
+            start_date: job.start_date ? new Date(job.start_date) : undefined,
+            end_date: job.end_date ? new Date(job.end_date) : undefined,
+          })),
+        };
+  }
+
+  return prismaData;
+}
+
 export async function createOrUpdateMember(id, data) {
   let parsedId = null;
 
-  // Try to parse the ID if provided
   if (typeof id === "string" && id.trim() !== "") {
-    parsedId = parseInt(id.trim(), 10); //onverts the id string into an integer, using base 10
+    parsedId = parseInt(id.trim(), 10);
 
     if (!isNaN(parsedId) && parsedId > 0) {
       const existing = await getById(parsedId);
-
       if (existing) {
-        //already have a member with this ID
-        // Update the existing member
-        return await update(parsedId, data);
+        const updateData = prepareDataForPrisma(data, true);
+        return await update(parsedId, updateData);
       }
     }
   }
+console.log("Creating new member with data:", data);
   data.english_name = data.english_name || data.fullName || 'Unknown';
-
-  // If no valid ID or not found -> create a new member
-  const newMember = await create(data);
-
-  //remove unwanted fields before returning
-  const {
-    id_community_member,
-    additional_info,
-    admin_notes,
-    years_of_experience,
-    participantEvents,
-    groupMemberships,
-    tags,
-    community_value_id,
-    ...safeData
-  } = newMember;
-
-  return safeData;
+  const createData = prepareDataForPrisma(data, false);
+  const newMember = await create(createData);
+  return newMember;
 }

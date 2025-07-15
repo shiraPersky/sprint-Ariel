@@ -1,6 +1,9 @@
 import { getAll } from '../dataLayer/group.data.js';
 
-import { getByIds } from '../dataLayer/groupMember.data.js';
+import groupMemberData from '../dataLayer/groupMember.data.js';
+
+const { getByIds } = groupMemberData;
+
 
 // Service function to get all groups
 export async function getAllGroups() {

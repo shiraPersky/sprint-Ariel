@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient(); // connection to database
 
 async function create(data) {
+  console.log('Creating new community member with data:', data);
   return await prisma.communityMember.create({ data });
 }
 
