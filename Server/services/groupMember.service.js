@@ -1,5 +1,15 @@
 import groupMemberData from '../dataLayer/groupMember.data.js';
 
+import communityMemberData from '../dataLayer/communityMember.data.js';
+
+export async function getMembersNotInGroup(id_group) {
+  if (!id_group || isNaN(Number(id_group))) {
+    throw new Error('Invalid group ID');
+  }
+
+  return await communityMemberData.getMembersNotInGroup(Number(id_group));
+}
+
 export async function addMemberToGroup(id_group, id_community_member) {
   if (!id_group || !id_community_member) {
     throw new Error('Group ID and Member ID are required');
