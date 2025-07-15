@@ -14,7 +14,6 @@ async function getAll() {
   });
 }
 
-export { getAll };
 
 async function getById(id) {
   return await prisma.group.findUnique({

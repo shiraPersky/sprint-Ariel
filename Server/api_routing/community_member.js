@@ -5,7 +5,7 @@ import { getMemberById, createMemberWithLinkedIn, createOrUpdateMember } from ".
 
 const router = express.Router();
 
-
+//Retrieve a single community member by their id.
 router.get('/:id', async (req, res) => {
     try {
         const id = req.params.id;
@@ -17,7 +17,7 @@ router.get('/:id', async (req, res) => {
 
         res.json(user);
     } catch (err) {
-        next(err); // מפנה ל־errorHandler.js
+        next(err); 
     }
 });
 
@@ -63,23 +63,5 @@ router.post("/linkedin", async (req, res) => {
 });
 
 
-    
 
-// router.put('/:id', async (req, res) => {
-//   try {
-//     const id = req.params.id;
-//     const updateData = req.body;
-
-//     const updatedUser = await updateMemberById(id, updateData);
-
-//     if (!updatedUser) {
-//       return res.status(404).json({ message: 'User not found or update failed' });
-//     }
-
-//     res.json(updatedUser);
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ message: 'Server error' });
-//   }
-// });
 export default router;

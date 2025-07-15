@@ -1,10 +1,36 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient(); // connection to database
 
+function cleanCreateRelations(data) {
+  const relationFields = [
+    "jobs",
+    "skills",
+    "tags",
+    "participantEvents",
+    "groupMemberships",
+    "participantValues",
+  ];
+
+  const cleanedData = { ...data };
+
+  for (const field of relationFields) {
+    if (Array.isArray(cleanedData[field]) && cleanedData[field].length > 0) {
+      cleanedData[field] = { create: cleanedData[field] };
+    } else {
+      delete cleanedData[field]; // Prisma doesn't accept empty arrays
+    }
+  }
+
+  return cleanedData;
+}
+
 async function create(data) {
+
   console.log('Creating new community member with data:', data);
   return await prisma.communityMember.create({ data });
+
 }
+
 
 // async function getAll() {
 //   return await prisma.communityMember.findMany();
@@ -21,7 +47,7 @@ export async function getAll(selectedFields = null) {
   if (selectedFields) {
     // Return only selected fields if provided
     return await prisma.communityMember.findMany({
-      select: selectedFields
+      select: selectedFields,
     });
   }
 
@@ -30,10 +56,10 @@ export async function getAll(selectedFields = null) {
     include: {
       groupMemberships: {
         include: {
-          group: true // Include the full group object (e.g. id, name, etc.)
-        }
-      }
-    }
+          group: true, // Include the full group object (e.g. id, name, etc.)
+        },
+      },
+    },
   });
 }
 
@@ -64,10 +90,125 @@ async function remove(id) {
   });
 }
 
+async function getMembersNotInGroup(id_group) {
+  return await prisma.communityMember.findMany({
+    where: {
+      groupMemberships: {
+        none: {
+          id_group: id_group,
+        },
+      },
+    },
+  });
+}
+
+async function updateMemberAndRelations(id, data) {
+  const memberId = Number(id);
+  if (isNaN(memberId)) throw new Error("Invalid member ID");
+
+  // Update main member
+  const updatedMember = await prisma.communityMember.update({
+    where: { id_community_member: memberId },
+    data: {
+      english_name: data.english_name,
+      title: data.title,
+      about: data.about,
+      phone: data.phone,
+      email: data.email,
+      city: data.city,
+      linkedin_url: data.linkedin_url,
+      facebook_url: data.facebook_url,
+      additional_info: data.additional_info,
+      wants_updates: data.wants_updates,
+      active: data.active,
+      admin_notes: data.admin_notes,
+      years_of_experience: data.years_of_experience,
+      community_value_id: data.community_value_id,
+    },
+  });
+
+  // Replace all nested relations in a transaction
+  await prisma.$transaction([
+    prisma.job.deleteMany({ where: { id_community_member: memberId } }),
+    ...data.jobs.map((job) =>
+      prisma.job.create({
+        data: {
+          id_community_member: memberId,
+          company_name: job.company_name,
+          start_date: new Date(job.start_date),
+          end_date: job.end_date ? new Date(job.end_date) : null,
+          icon: job.icon || null,
+          description: job.description || null,
+        },
+      })
+    ),
+
+    prisma.skill.deleteMany({ where: { id_community_member: memberId } }),
+    ...data.skills.map((skill) =>
+      prisma.skill.create({
+        data: {
+          id_community_member: memberId,
+          description: skill.description,
+        },
+      })
+    ),
+
+    prisma.tag.deleteMany({ where: { id_community_member: memberId } }),
+    ...data.tags.map((tag) =>
+      prisma.tag.create({
+        data: {
+          id_community_member: memberId,
+          tag: tag.tag,
+        },
+      })
+    ),
+
+    prisma.participantEvent.deleteMany({
+      where: { id_community_member: memberId },
+    }),
+    ...data.participantEvents.map((pe) =>
+      prisma.participantEvent.create({
+        data: {
+          id_community_member: memberId,
+          id_event: pe.id_event,
+        },
+      })
+    ),
+
+    prisma.groupMember.deleteMany({ where: { id_community_member: memberId } }),
+    ...data.groupMemberships.map((gm) =>
+      prisma.groupMember.create({
+        data: {
+          id_community_member: memberId,
+          id_group: gm.id_group,
+        },
+      })
+    ),
+
+    prisma.participantCommunityValue.deleteMany({
+      where: { id_community_member: memberId },
+    }),
+    ...data.participantValues.map((pv) =>
+      prisma.participantCommunityValue.create({
+        data: {
+          id_community_member: memberId,
+          id_community_value: pv.id_community_value,
+          description: pv.description,
+        },
+      })
+    ),
+  ]);
+
+  return updatedMember;
+}
+
+
 export default {
   create,
   getAll,
   getById,
   update,
   remove,
+  getMembersNotInGroup,
+  updateMemberAndRelations,
 };

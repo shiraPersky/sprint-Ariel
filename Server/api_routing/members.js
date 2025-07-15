@@ -1,6 +1,6 @@
 import express from 'express';
 import * as communityMemberService from '../services/memberService.js';
-import { getCommonMembersInGroups } from '../services/group.service.js';
+import { getCommonMembersInGroups } from '../services/groupService.js';
 
 const router = express.Router();
 

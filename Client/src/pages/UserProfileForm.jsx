@@ -15,6 +15,7 @@ export default function EditableUserProfile() {
   const { id } = useParams();
 
   const [formData, setFormData] = useState({
+
     english_name: "ggg",
     title: "softward",
     phone: "0585907923",
@@ -37,19 +38,36 @@ export default function EditableUserProfile() {
   const { isLoading, isError } = submitState;
 
   const [fetchState, setFetchRequest] = useDataApi(null, null);
+const formatSkillsToString = (skillsArray) => {
+  if (!Array.isArray(skillsArray)) return '';
+  return skillsArray.map((skill) => skill.description).join(', ');
+};
 
   useEffect(() => {
     if (id) {
-      setFetchRequest({
-        url: `/member/${id}`,
+      // בקשה רגילה עם fetch
+      fetch(`http://localhost:5000/member/${id}`, {
         method: "GET",
-        onSuccess: (data) => {
-          if (!data.participantValues) data.participantValues = [{ id_community_value: "", description: "" }];
-          if (!data.jobs) data.jobs = []; // שים לב גם פה
-          setFormData(data);
-          setOriginalData(data);
+        headers: {
+          "Content-Type": "application/json",
         },
-        onFailure: (error) => {
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((data) => {
+          console.log("Fetched profile data:", data);
+          const formattedSkills = formatSkillsToString(data.skills);
+            setFormData({
+            ...data,
+            skills: formattedSkills
+          });
+          setOriginalData(data);
+        })
+        .catch((error) => {
           console.error("Failed to fetch profile:", error);
           alert("Error loading profile");
         },
@@ -70,7 +88,7 @@ export default function EditableUserProfile() {
       setFormData(emptyData);
       setOriginalData(emptyData);
     }
-  }, [id]);
+  }, [id]); // הוספתי את id כתלות
 
   const handleChange = (e) => {
     const { name, value } = e.target;
