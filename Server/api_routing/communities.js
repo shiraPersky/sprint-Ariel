@@ -5,7 +5,32 @@ import {
   removeMemberFromGroup,
 } from "../services/groupMember.service.js";
 
+import { getMembersNotInGroup } from '../services/groupMember.service.js';
+
+
+
 const router = express.Router();
+
+// GET all members NOT in a specific group
+router.get('/group/:id/members-not-in', async (req, res, next) => {
+  try {
+    const id_group = parseInt(req.params.id);
+
+    if (isNaN(id_group)) {
+      return res.status(400).json({ success: false, error: 'Invalid group ID' });
+    }
+
+    const members = await getMembersNotInGroup(id_group);
+
+    res.json({
+      success: true,
+      data: members,
+      count: members.length
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 // GET all groups with selected fields
 router.get("/", async (req, res, next) => {

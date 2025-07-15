@@ -63,10 +63,24 @@ async function remove(id) {
   });
 }
 
+async function getMembersNotInGroup(id_group) {
+  return await prisma.communityMember.findMany({
+    where: {
+      groupMemberships: {
+        none: {
+          id_group: id_group
+        }
+      }
+    }
+  });
+}
+
+
 export default {
   create,
   getAll,
   getById,
   update,
   remove,
+  getMembersNotInGroup,
 };
