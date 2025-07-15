@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import useDataApi from './UseDataApi'; // ודא שהנתיב נכון
+import useDataApi from './UseDataApi';
 
 export default function EditableUserProfile() {
   const [activeTab, setActiveTab] = useState('contact');
+  const { id } = useParams();
+
   const [formData, setFormData] = useState({
     fullName: '',
     title: '',
@@ -23,31 +26,42 @@ export default function EditableUserProfile() {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const [submitState, setSubmitRequest] = useDataApi(null, null);
-  const { isLoading, isError, data } = submitState;
+  const { isLoading, isError } = submitState;
+
+  const [fetchState, setFetchRequest] = useDataApi(null, null);
 
   useEffect(() => {
-    const mockData = {
-      fullName: 'Yael Cohen',
-      title: 'Frontend Developer',
-      idNumber: '123456789',
-      phone: '052-1234567',
-      email: 'user@example.com',
-      linkedin: 'https://linkedin.com/in/user',
-      facebook: 'https://facebook.com/user',
-      about: 'Lorem ipsum dolor sit amet.',
-      skills: 'React, Design',
-      contribution: '',
-      experience: [],
-    };
-    setFormData(mockData);
-    setOriginalData(mockData);
-  }, []);
-
-  useEffect(() => {
-    if (isError) {
-      alert('An error occurred while submitting your profile.');
+    if (id) {
+      setFetchRequest({
+        url: `/member/data/${id}`,
+        method: 'GET',
+        onSuccess: (data) => {
+          setFormData(data);
+          setOriginalData(data);
+        },
+        onFailure: (error) => {
+          console.error('Failed to fetch profile:', error);
+          alert('שגיאה בטעינת הפרופיל');
+        },
+      });
+    } else {
+      const emptyData = {
+        fullName: '',
+        title: '',
+        idNumber: '',
+        phone: '',
+        email: '',
+        linkedin: '',
+        facebook: '',
+        about: '',
+        skills: '',
+        contribution: '',
+        experience: [],
+      };
+      setFormData(emptyData);
+      setOriginalData(emptyData);
     }
-  }, [isError]);
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -79,12 +93,16 @@ export default function EditableUserProfile() {
     if (!formData.contribution.trim()) return;
 
     setSubmitRequest({
-      url: '//member/data/',
+      url: id ? `/member/data/${id}` : '/member/data/',
       method: 'POST',
       body: formData,
+      onSuccess: () => {
+        setIsSubmitted(true);
+      },
+      onFailure: () => {
+        alert('שגיאה בשליחת הפרופיל');
+      },
     });
-
-    setIsSubmitted(true);
   };
 
   if (isSubmitted) {

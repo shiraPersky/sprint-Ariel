@@ -7,6 +7,10 @@ const router = express.Router();
 router.post("/", async (req, res) => {
   try {
     const { linkedin_url } = req.body;
+    console.log('BODY:', req.body);
+    if (!linkedin_url || typeof linkedin_url !== 'string' || !linkedin_url.startsWith('http')) {
+  throw new Error('Invalid LinkedIn URL');
+}
     const newMember = await createMemberWithLinkedIn(linkedin_url);
     res
       .status(201)

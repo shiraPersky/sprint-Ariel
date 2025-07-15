@@ -15,7 +15,7 @@ const dataFetchReducer = (state, action) => {
 };
 
 /**
- * @param {string|object|null} initialRequest - אם מחרוזת: נחשב כ-GET. אם אובייקט: יכול להכיל url, method, body.
+ * @param {string|object|null} initialRequest - אם מחרוזת: נחשב כ-GET. אם אובייקט: יכול להכיל url, method, body, onSuccess, onFailure.
  * @param {*} initialData
  */
 const useDataApi = (initialRequest, initialData = null) => {
@@ -37,12 +37,21 @@ const useDataApi = (initialRequest, initialData = null) => {
 
       try {
         let axiosConfig;
+        let onSuccess = null;
+        let onFailure = null;
 
         if (typeof request === 'string') {
-          // קריאת GET פשוטה
           axiosConfig = { method: 'GET', url: request };
         } else if (typeof request === 'object' && request.url) {
-          const { url, method = 'GET', body = null, headers = {} } = request;
+          const {
+            url,
+            method = 'GET',
+            body = null,
+            headers = {},
+            onSuccess: successCallback,
+            onFailure: failureCallback,
+          } = request;
+
           axiosConfig = {
             url,
             method,
@@ -51,20 +60,29 @@ const useDataApi = (initialRequest, initialData = null) => {
               ...headers,
             },
             ...(body ? { data: body } : {}),
+            withCredentials: true,
           };
+
+          onSuccess = successCallback;
+          onFailure = failureCallback;
         } else {
           throw new Error('Invalid request format passed to useDataApi');
         }
 
-  
         const result = await api(axiosConfig);
 
         if (!didCancel) {
           dispatch({ type: 'FETCH_SUCCESS', payload: result.data });
+          if (typeof onSuccess === 'function') {
+            onSuccess(result.data);
+          }
         }
       } catch (error) {
         if (!didCancel) {
           dispatch({ type: 'FETCH_FAILURE' });
+          if (typeof request === 'object' && typeof request.onFailure === 'function') {
+            request.onFailure(error);
+          }
         }
       }
     };
