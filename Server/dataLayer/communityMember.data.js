@@ -25,25 +25,10 @@ function cleanCreateRelations(data) {
 }
 
 async function create(data) {
-  if (!data || typeof data !== "object") {
-    throw new Error("Invalid data provided to create()");
-  }
 
-  const clonedData = { ...data };
+  console.log('Creating new community member with data:', data);
+  return await prisma.communityMember.create({ data });
 
-  // Explicitly delete ID
-  if ("id_community_member" in clonedData) {
-    console.log("⚠️ id_community_member BEFORE delete:", clonedData.id_community_member);
-    delete clonedData.id_community_member;
-  }
-
-  const cleaned = cleanCreateRelations(clonedData);
-
-  // Log final data
-  console.log("📦 Final data sent to Prisma:", JSON.stringify(cleaned, null, 2));
-
-  // Prisma create
-  return await prisma.communityMember.create({ data: cleaned });
 }
 
 

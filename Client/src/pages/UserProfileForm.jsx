@@ -3,22 +3,31 @@ import { useParams } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import useDataApi from "./UseDataApi";
 
+const contributionOptions = [
+  { id: 1, label: "Webinar" },
+  { id: 2, label: "Mokef" },
+  { id: 3, label: "Mentoring" },
+  { id: 4, label: "Other" },
+];
+
 export default function EditableUserProfile() {
   const [activeTab, setActiveTab] = useState("contact");
   const { id } = useParams();
 
   const [formData, setFormData] = useState({
-    english_name: "",
-    title: "",
-    idNumber: "",
-    phone: "",
-    email: "",
-    linkedin: "",
-    facebook: "",
-    about: "",
-    skills: "",
-    contribution: "",
-    experience: [],
+
+    english_name: "ggg",
+    title: "softward",
+    phone: "0585907923",
+    email: "miryamgur@gmail.com",
+    linkedin_url: "",
+    facebook_url: "",
+    about: "jjfwf jfwej kjjkjef kkjkf",
+    skills: ["Writing", "Design", "Marketing"],
+    participantValues: [
+      { id_community_value: "", description: "" },
+    ],
+    jobs: [], 
   });
 
   const [originalData, setOriginalData] = useState({});
@@ -60,21 +69,21 @@ const formatSkillsToString = (skillsArray) => {
         })
         .catch((error) => {
           console.error("Failed to fetch profile:", error);
-          alert("שגיאה בטעינת הפרופיל");
-        });
+          alert("Error loading profile");
+        },
+      });
     } else {
       const emptyData = {
-        english_name: "",
-        title: "",
-        idNumber: "",
-        phone: "",
-        email: "",
-        linkedin: "",
-        facebook: "",
-        about: "",
-        skills: "",
-        contribution: "",
-        experience: [],
+        english_name: "ggg",
+        title: "softward",
+        phone: "0585907923",
+        email: "miryamgur@gmail.com",
+        linkedin_url: "",
+        facebook_url: "",
+        about: "jjfwf jfwej kjjkjef kkjkf",
+        skills: ["Writing", "Design", "Marketing"],
+        participantValues: [{ id_community_value: "", description: "" }],
+        jobs: [], // שים לב
       };
       setFormData(emptyData);
       setOriginalData(emptyData);
@@ -86,23 +95,22 @@ const formatSkillsToString = (skillsArray) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleExperienceChange = (index, field, value) => {
-    const updated = [...formData.experience];
+  const handleJobChange = (index, field, value) => {
+    const updated = [...formData.jobs];
     updated[index][field] = value;
-    setFormData((prev) => ({ ...prev, experience: updated }));
+    setFormData((prev) => ({ ...prev, jobs: updated }));
   };
 
-  const addExperience = () => {
+  const addJob = () => {
     setFormData((prev) => ({
       ...prev,
-      experience: [
-        ...prev.experience,
+      jobs: [
+        ...prev.jobs,
         {
-          company: "",
-          dates: "",
+          company_name: "",
+          start_date: "",
+          end_date: "",
           description: "",
-          firstName: "",
-          lastName: "",
         },
       ],
     }));
@@ -119,21 +127,73 @@ const formatSkillsToString = (skillsArray) => {
     setIsFinalStep(true);
   };
 
+  // --- Contribution handlers ---
+
+  const handleContributionChange = (index, field, value) => {
+    const updated = [...formData.participantValues];
+    updated[index] = { ...updated[index], [field]: value };
+    setFormData((prev) => ({ ...prev, participantValues: updated }));
+  };
+
+  const addContribution = () => {
+    setFormData((prev) => ({
+      ...prev,
+      participantValues: [...prev.participantValues, { id_community_value: "", description: "" }],
+    }));
+  };
+
+  const removeContribution = (index) => {
+    const updated = formData.participantValues.filter((_, i) => i !== index);
+    setFormData((prev) => ({ ...prev, participantValues: updated }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.contribution.trim()) return;
+
+    if (
+      !formData.participantValues ||
+      formData.participantValues.length === 0 ||
+      !formData.participantValues.some(cv => cv.id_community_value)
+    ) {
+      alert("Please provide at least one community contribution");
+      return;
+    }
+
+    const filteredJobs = formData.jobs.filter((job) =>
+      Object.values(job).some((val) => val?.toString().trim() !== "")
+    );
+
+    const cleanedFormData = {
+      ...formData,
+      jobs: filteredJobs,
+    };
 
     setSubmitRequest({
       url: id ? `/member/${id}` : "/member",
       method: "PUT",
-      body: formData,
+      body: cleanedFormData,
       onSuccess: () => {
         setIsSubmitted(true);
       },
       onFailure: () => {
-        alert("שגיאה בשליחת הפרופיל");
+        alert("Error submitting profile");
       },
     });
+  };
+
+  const handleSkillChange = (index, value) => {
+    const updated = [...formData.skills];
+    updated[index] = value;
+    setFormData((prev) => ({ ...prev, skills: updated }));
+  };
+
+  const addSkill = () => {
+    setFormData((prev) => ({ ...prev, skills: [...prev.skills, ""] }));
+  };
+
+  const removeSkill = (index) => {
+    const updated = formData.skills.filter((_, i) => i !== index);
+    setFormData((prev) => ({ ...prev, skills: updated }));
   };
 
   if (isSubmitted) {
@@ -152,12 +212,12 @@ const formatSkillsToString = (skillsArray) => {
             className="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-3"
             style={{ width: 60, height: 60, fontSize: 24 }}
           >
-            {getInitials(formData.fullName)}
+            {getInitials(formData.english_name)}
           </div>
           <div className="flex-grow-1">
             <input
               type="text"
-              name="fullName"
+              name="english_name"
               className="form-control mb-1"
               placeholder="Full Name"
               value={formData.english_name}
@@ -228,9 +288,9 @@ const formatSkillsToString = (skillsArray) => {
                     <label>LinkedIn</label>
                     <input
                       type="url"
-                      name="linkedin"
+                      name="linkedin_url"
                       className="form-control"
-                      value={formData.linkedin}
+                      value={formData.linkedin_url}
                       onChange={handleChange}
                     />
                   </div>
@@ -238,9 +298,9 @@ const formatSkillsToString = (skillsArray) => {
                     <label>Facebook</label>
                     <input
                       type="url"
-                      name="facebook"
+                      name="facebook_url"
                       className="form-control"
-                      value={formData.facebook}
+                      value={formData.facebook_url}
                       onChange={handleChange}
                     />
                   </div>
@@ -264,120 +324,158 @@ const formatSkillsToString = (skillsArray) => {
 
               {activeTab === "experience" && (
                 <div className="tab-pane active">
-                  {formData.experience.map((exp, index) => (
+                  {formData.jobs.map((job, index) => (
                     <div key={index} className="border rounded p-3 mb-3">
                       <input
                         type="text"
-                        placeholder="Company"
+                        placeholder="Company Name"
                         className="form-control mb-2"
-                        value={exp.company}
+                        value={job.company_name}
                         onChange={(e) =>
-                          handleExperienceChange(
-                            index,
-                            "company",
-                            e.target.value
-                          )
+                          handleJobChange(index, "company_name", e.target.value)
                         }
                       />
-                      <input
-                        type="text"
-                        placeholder="Dates"
-                        className="form-control mb-2"
-                        value={exp.dates}
-                        onChange={(e) =>
-                          handleExperienceChange(index, "dates", e.target.value)
-                        }
-                      />
+
+                      <div className="row mb-2">
+                        <div className="col">
+                          <label className="form-label">Start Date</label>
+                          <input
+                            type="date"
+                            className="form-control"
+                            value={job.start_date}
+                            onChange={(e) =>
+                              handleJobChange(index, "start_date", e.target.value)
+                            }
+                          />
+                        </div>
+                        <div className="col">
+                          <label className="form-label">End Date</label>
+                          <input
+                            type="date"
+                            className="form-control"
+                            value={job.end_date}
+                            onChange={(e) =>
+                              handleJobChange(index, "end_date", e.target.value)
+                            }
+                          />
+                        </div>
+                      </div>
+
                       <textarea
                         placeholder="Description"
                         className="form-control mb-2"
                         rows="2"
-                        value={exp.description}
+                        value={job.description}
                         onChange={(e) =>
-                          handleExperienceChange(
-                            index,
-                            "description",
-                            e.target.value
-                          )
+                          handleJobChange(index, "description", e.target.value)
                         }
                       />
-                      <div className="d-flex">
-                        <input
-                          type="text"
-                          placeholder="First Name"
-                          className="form-control me-1"
-                          value={exp.firstName}
-                          onChange={(e) =>
-                            handleExperienceChange(
-                              index,
-                              "firstName",
-                              e.target.value
-                            )
-                          }
-                        />
-                        <input
-                          type="text"
-                          placeholder="Last Name"
-                          className="form-control"
-                          value={exp.lastName}
-                          onChange={(e) =>
-                            handleExperienceChange(
-                              index,
-                              "lastName",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </div>
                     </div>
                   ))}
+
                   <button
                     type="button"
                     className="btn btn-outline-primary w-100"
-                    onClick={addExperience}
+                    onClick={addJob}
                   >
-                    Add Experience
+                    Add Job
                   </button>
                 </div>
               )}
 
               {activeTab === "skills" && (
                 <div className="tab-pane active">
-                  <div className="mb-3">
-                    <label>Skills</label>
-                    <input
-                      type="text"
-                      name="skills"
-                      className="form-control"
-                      value={formData.skills}
-                      onChange={handleChange}
-                      placeholder="e.g. Writing, Design, Marketing"
-                    />
-                    <div className="form-text">
-                      Separate multiple skills with commas.
+                  <label className="form-label">Skills</label>
+                  {formData.skills.map((skill, index) => (
+                    <div className="input-group mb-2" key={index}>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={skill}
+                        onChange={(e) => handleSkillChange(index, e.target.value)}
+                        placeholder="Skill"
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-outline-danger"
+                        onClick={() => removeSkill(index)}
+                      >
+                        &times;
+                      </button>
                     </div>
-                  </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    className="btn btn-outline-primary w-100"
+                    onClick={addSkill}
+                  >
+                    + Add Skill
+                  </button>
                 </div>
               )}
             </div>
           </>
         ) : (
           <>
+            {/* Contribution select + description */}
             <div className="mb-3">
               <label>
                 <strong>Community Contribution (Required)</strong>
               </label>
-              <textarea
-                name="contribution"
-                className="form-control"
-                rows="4"
-                required
-                value={formData.contribution}
-                onChange={handleChange}
-                placeholder="e.g. Mentoring, Translating, Organizing events"
-              />
+
+              {(formData.participantValues || []).map((contribution, index) => (
+                <div key={index} className="border rounded p-3 mb-2">
+                  <div className="row mb-2">
+                    <div className="col">
+                      <select
+                        className="form-select"
+                        value={contribution.id_community_value || ""}
+                        required
+                        onChange={(e) =>
+                          handleContributionChange(index, "id_community_value", parseInt(e.target.value))
+                        }
+                      >
+                        <option value="">Select contribution type</option>
+                        {contributionOptions.map(opt => (
+                          <option key={opt.id} value={opt.id}>{opt.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="col">
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Description"
+                        value={contribution.description || ""}
+                        onChange={(e) =>
+                          handleContributionChange(index, "description", e.target.value)
+                        }
+                      />
+                    </div>
+                  </div>
+                  {formData.participantValues.length > 1 && (
+                    <button
+                      type="button"
+                      className="btn btn-outline-danger btn-sm"
+                      onClick={() => removeContribution(index)}
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              ))}
+
+              <button
+                type="button"
+                className="btn btn-outline-primary"
+                onClick={addContribution}
+              >
+                Add Contribution
+              </button>
             </div>
-            {formData.contribution.trim() !== "" && (
+
+            {(formData.participantValues && formData.participantValues.length > 0 && formData.participantValues.some(cv => cv.id_community_value)) && (
               <div className="text-center">
                 <button
                   type="submit"

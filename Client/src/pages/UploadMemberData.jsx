@@ -6,20 +6,31 @@ function UploadData() {
   const [linkedinUrl, setLinkedinUrl] = useState('');
   const [cvFile, setCvFile] = useState(null);
   const [submitClicked, setSubmitClicked] = useState(false);
+  const [contributionEntries, setContributionEntries] = useState([
+  { type: '', description: '' }
+]);
+const handleContributionChange = (index, field, value) => {
+  const updated = [...contributionEntries];
+  updated[index][field] = value;
+  setContributionEntries(updated);
+};
+
+const addContributionEntry = () => {
+  setContributionEntries([...contributionEntries, { type: '', description: '' }]);
+};
+
   const navigate = useNavigate();
-
   const [state, setRequest] = useDataApi(null);
-
   const { data, isLoading, isError } = state;
 
-  // אם הצליח וקיבלנו id מהשרת – נווט לעמוד לפי id
+  // אם הצליח וקיבלנו id מהשרת – נווט לעמוד עם id
   useEffect(() => {
     if (submitClicked && data && data.id_community_member) {
-      navigate(`/member/linkedin${data.id_community_member}/data/`);
+      navigate(`/member/${data.id_community_member}/data/`);
     }
   }, [data, submitClicked, navigate]);
 
-  // אם הייתה שגיאה – הצג למשתמש
+  // אם הייתה שגיאה – הצג למשתמש והפעל מחדש את המצב
   useEffect(() => {
     if (submitClicked && isError) {
       alert('An error occurred while processing your LinkedIn URL.');
@@ -28,22 +39,27 @@ function UploadData() {
   }, [isError, submitClicked]);
 
   const handleUpload = () => {
+    // אם יש לינקדאין – שולחים בקשה לשרת
     if (linkedinUrl) {
       setSubmitClicked(true);
       setRequest({
-        url: '/member',
+        url: '/member/linkedin',
         method: 'POST',
         body: { linkedin_url: linkedinUrl }
       });
-    } else if (cvFile) {
-      navigate('/member/data/');
-    } else {
+    } 
+    // אם אין לינקדאין ויש קובץ קורות חיים – עוברים ישירות לעמוד
+    else if (cvFile) {
+      navigate('/member/data');
+    } 
+    // לא הזינו כלום
+    else {
       alert('Please provide either a LinkedIn URL or upload a CV file.');
     }
   };
 
   const handleDirectNavigation = () => {
-    navigate('/member/data/');
+    navigate('/member/data');
   };
 
   return (
@@ -59,6 +75,7 @@ function UploadData() {
           placeholder="https://www.linkedin.com/in/your-profile"
           value={linkedinUrl}
           onChange={(e) => setLinkedinUrl(e.target.value)}
+          disabled={isLoading}
         />
       </div>
 
@@ -70,6 +87,7 @@ function UploadData() {
           id="cv"
           accept=".pdf"
           onChange={(e) => setCvFile(e.target.files[0])}
+          disabled={isLoading}
         />
       </div>
 
