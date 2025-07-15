@@ -29,7 +29,25 @@ const useServerRequests = () => {
       setGroupsLoading(false);
     }
   };
-
+  const getAllUsers = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:5000/members/', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
+      }
+      
+      const usersData = await response.json();
+      return usersData;
+    } catch (error) {
+      console.error('Error searching users:', error);
+      alert('שגיאה בחיפוש משתמשים');
+    }
+  }
   const searchUsers = async (searchText, selectedGroups) => {
     try {
       setLoading(true);
@@ -192,6 +210,30 @@ const useServerRequests = () => {
       return { success: false, error: error.message };
     }
   };
+  const removeUsersFromGroup = async (groupId, userIds) => {
+    try {
+      console.log('➖ Removing users from group:', { groupId, userIds });
+      
+      const response = await fetch(`/api/groups/${groupId}/remove-users`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userIds }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to remove users from group');
+      }
+      
+      const result = await response.json();
+      console.log(`✅ Successfully removed ${result.removedCount} users from group ${groupId}`);
+      return result;
+      
+    } catch (error) {
+      console.error('Error removing users from group:', error);
+      alert('שגיאה בהסרת משתמשים מהקבוצה');
+      return { success: false, error: error.message };
+    }
+  };
 
   return {
     loading,
@@ -203,7 +245,8 @@ const useServerRequests = () => {
     getGroupMembers,          // 🆕 פונקציה חדשה
     getGroupDetails,          // 🆕 פונקציה חדשה
     getAvailableUsersForGroup, // 🆕 פונקציה חדשה
-    addUsersToGroup           // 🆕 פונקציה חדשה
+    addUsersToGroup,         // 🆕 פונקציה חדשה
+    removeUsersFromGroup     // 🆕 פונקציה חדשה
   };
 };
 

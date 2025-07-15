@@ -141,13 +141,35 @@ const AddUsersModal = ({
             <h2 className="text-2xl font-bold text-gray-800">הוסף משתמשים לקבוצה</h2>
             <p className="text-gray-600">{groupName || 'קבוצה'}</p>
           </div>
-          <button 
-            onClick={handleClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            disabled={adding}
-          >
-            <X className="w-6 h-6" />
-          </button>
+          
+          <div className="flex items-center gap-3">
+            {/* כפתור הוספה מהיר */}
+            <button
+              onClick={handleAddUsers}
+              disabled={selectedUsers.length === 0 || adding || !addUsersToGroup}
+              className="flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-blue-600 text-white rounded-lg hover:from-green-600 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {adding ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin ml-2" />
+                  מוסיף...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 ml-2" />
+                  הוסף ({selectedUsers.length})
+                </>
+              )}
+            </button>
+            
+            <button 
+              onClick={handleClose}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              disabled={adding}
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
         </div>
 
         {/* שדה חיפוש */}
@@ -277,4 +299,4 @@ const AddUsersModal = ({
   );
 };
 
-export default AddUsersModal;   
+export default AddUsersModal;
