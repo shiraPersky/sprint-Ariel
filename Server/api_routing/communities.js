@@ -27,4 +27,24 @@ router.get('/', async (req, res, next) => {
   }
 });
 
+// GET members by group ID
+router.get('/group/:id/members', async (req, res, next) => {
+  try {
+    const id_group = parseInt(req.params.id);
+    if (isNaN(id_group)) {
+      return res.status(400).json({ success: false, error: 'Invalid group ID' });
+    }
+
+    const members = await getMembersByGroupId(id_group);
+
+    res.json({
+      success: true,
+      data: members,
+      count: members.length
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;
