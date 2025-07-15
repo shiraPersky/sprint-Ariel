@@ -1,5 +1,7 @@
 import express from 'express';
 import { getAllGroups } from '../services/group.service.js';
+import { addMemberToGroup } from '../services/groupMember.service.js';
+
 
 const router = express.Router();
 
@@ -41,6 +43,25 @@ router.get('/group/:id/members', async (req, res, next) => {
       success: true,
       data: members,
       count: members.length
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/add-member', async (req, res, next) => {
+  try {
+    const { id_group, id_community_member } = req.body;
+
+    if (!id_group || !id_community_member) {
+      return res.status(400).json({ success: false, error: 'Both group ID and member ID are required' });
+    }
+
+    const newEntry = await addMemberToGroup(id_group, id_community_member);
+
+    res.status(201).json({
+      success: true,
+      data: newEntry
     });
   } catch (error) {
     next(error);
