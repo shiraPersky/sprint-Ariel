@@ -30,7 +30,7 @@ export async function getCommonMembersInGroups(groupIds) {
 
   // Loop through each group ID and fetch its members using getByIds
   for (const id_group of groupIds) {
-    const membersInGroup = await getByIds({ id_group });
+    const membersInGroup = await groupMemberData.getByIds({ id_group });
 
     // Extract only the member IDs from each group
     const memberIds = membersInGroup.map(m => m.id_community_member);
@@ -45,7 +45,7 @@ export async function getCommonMembersInGroups(groupIds) {
   })];
 
   // Use getByIds again on one group to retrieve full member objects
-  const fullMembers = await getByIds({ id_group: groupIds[0] });
+  const fullMembers = await groupMemberData.getByIds({ id_group: groupIds[0] });
 
   // Filter out only those whose IDs are in the intersection
   const filteredMembers = fullMembers
