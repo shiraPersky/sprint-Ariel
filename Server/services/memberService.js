@@ -290,12 +290,6 @@ function prepareDataForPrisma(data, isUpdate = false) {
 }
 
 
-export async function getAllMembers() {
-  try {
-    const members = await getAll();
-    return members;
-  } catch (error) {
-    throw new Error('Failed to retrieve members');
 
 
 export async function createOrUpdateMember(id, data) {

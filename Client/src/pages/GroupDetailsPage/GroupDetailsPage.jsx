@@ -22,7 +22,7 @@ const GroupDetailsPage = () => {
     getGroupDetails, 
     getAvailableUsersForGroup, 
     addUsersToGroup,
-    removeUsersFromGroup
+    removeUsersFromGroup,
   } = useServerRequestsMock();
 
   // פונקציה לטעינת חברי הקבוצה מהשרת
