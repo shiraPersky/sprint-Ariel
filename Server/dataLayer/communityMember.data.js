@@ -32,6 +32,7 @@ function cleanCreateRelations(data) {
 }
 
 async function create(data) {
+
   if (!data || typeof data !== "object") {
     throw new Error("Invalid data provided to create()");
   }
@@ -50,9 +51,12 @@ async function create(data) {
     delete cleaned.id_community_member;
   }
 
-  console.log("📦 Final data sent to Prisma:", JSON.stringify(cleaned, null, 2));
 
-  return await prisma.communityMember.create({ data: cleaned });
+
+  console.log('Creating new community member with data:', data);
+  return await prisma.communityMember.create({ data });
+
+
 }
 
 
