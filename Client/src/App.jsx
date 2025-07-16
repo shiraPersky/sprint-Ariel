@@ -8,12 +8,14 @@ import UserSearchComponent from "./pages/Searchpage/UserSearchComponent";
 import UserProfileForm from "./pages/UserProfileForm";
 import CommunityMembersPage from "./pages/CommunityPage";
 import "./pages/index.css"; 
+import CvTemporaryPage from "./pages/cv/CvTemporaryPage";
 
 
 function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/cv-temp" element={<CvTemporaryPage />} />
 
        <Route path="/member/:id/data/" element={<UserProfileForm />} />
        <Route path="/member/data/" element={<UserProfileForm />} />
