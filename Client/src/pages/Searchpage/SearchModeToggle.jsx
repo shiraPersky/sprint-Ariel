@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, UserCheck } from 'lucide-react'; // ← הוסף את זה!
+import { Users, UserCheck,User } from 'lucide-react'; // ← הוסף את זה!
 
 // קומפוננט Toggle למצבי חיפוש
 const SearchModeToggle = ({ searchMode, setSearchMode }) => (
@@ -13,7 +13,7 @@ const SearchModeToggle = ({ searchMode, setSearchMode }) => (
             : 'text-gray-600 hover:bg-gray-200'
         }`}
       >
-        <Users className="w-5 h-5 ml-2" />
+        <User className="w-5 h-5 ml-2" />
         Search users
       </button>
       <button
@@ -24,7 +24,7 @@ const SearchModeToggle = ({ searchMode, setSearchMode }) => (
             : 'text-gray-600 hover:bg-gray-200'
         }`}
       >
-        <UserCheck className="w-5 h-5 ml-2" />
+        <Users className="w-5 h-5 ml-2" />
         Search groups
       </button>
     </div>

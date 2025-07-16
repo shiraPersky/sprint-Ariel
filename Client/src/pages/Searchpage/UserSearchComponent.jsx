@@ -69,6 +69,20 @@ const UserSearchComponent = () => {
     loadInitialData();
   }, []);
 
+  // חיפוש אוטומטי כאשר משנים את מצב החיפוש
+  useEffect(() => {
+    // בצע חיפוש רק אם יש טקסט חיפוש או פילטרים
+    if (searchText.trim() || (searchMode === 'users' && selectedGroups.length > 0)) {
+      console.log('🔄 Search mode changed, performing automatic search...', { searchMode, searchText, selectedGroups });
+      handleSearch();
+    } else if (hasSearched) {
+      // אם אין טקסט חיפוש אבל כבר בוצע חיפוש קודם, אפס את התוצאות
+      console.log('🧹 No search criteria, resetting to show all data...');
+      setSearchResults([]);
+      setHasSearched(false);
+    }
+  }, [searchMode]); // רק כאשר searchMode משתנה
+
   const handleGroupChange = (groupId) => {
     setSelectedGroups(prev => 
       prev.includes(groupId) 
@@ -76,15 +90,16 @@ const UserSearchComponent = () => {
         : [...prev, groupId]
     );
   };
+
   const handleGroupUpdated = async (groupId, newName) => {
-  console.log('🚀 Updating group name:', { groupId, newName });
-  await updateGroupName(groupId, newName);
-  // רענן את הקבוצות
-  const refreshedGroups = await getAllGroups();
-  const groupsArray = refreshedGroups.success ? refreshedGroups.data : [];
-  setOriginalGroups(groupsArray);
-  await fetchGroups(); // עדכן גם את הפילטר
-};
+    console.log('🚀 Updating group name:', { groupId, newName });
+    await updateGroupName(groupId, newName);
+    // רענן את הקבוצות
+    const refreshedGroups = await getAllGroups();
+    const groupsArray = refreshedGroups.success ? refreshedGroups.data : [];
+    setOriginalGroups(groupsArray);
+    await fetchGroups(); // עדכן גם את הפילטר
+  };
 
   const getSelectedGroupNames = () => {
     return selectedGroups.map(groupId => {
@@ -92,22 +107,24 @@ const UserSearchComponent = () => {
       return group ? group.name : '';
     }).filter(name => name);
   };
-const handleGroupDeleted = async (groupId) => {
-  console.log('🗑️ Deleting group:', groupId);
-  await deleteGroup(groupId);
-  // רענן את הקבוצות
-  const refreshedGroups = await getAllGroups();
-  const groupsArray = refreshedGroups.success ? refreshedGroups.data : [];
-  setOriginalGroups(groupsArray);
-  await fetchGroups(); // עדכן גם את הפילטר
-};
+
+  const handleGroupDeleted = async (groupId) => {
+    console.log('🗑️ Deleting group:', groupId);
+    await deleteGroup(groupId);
+    // רענן את הקבוצות
+    const refreshedGroups = await getAllGroups();
+    const groupsArray = refreshedGroups.success ? refreshedGroups.data : [];
+    setOriginalGroups(groupsArray);
+    await fetchGroups(); // עדכן גם את הפילטר
+  };
+
   const handleSendToServer = async (file) => {
     try {
       const result = await uploadExcelFile(file);
       console.log('📤 File upload result:', result);
       
       // הצגת הודעת הצלחה
-      alert(`הקובץ ${file.name} הועלה בהצלחה!`);
+      alert(`The file ${file.name} was uploaded successfully!`);
       
       // טען מחדש את כל המשתמשים ועדכן את הstate
       console.log('🔄 Refreshing users data after upload...');
@@ -176,22 +193,22 @@ const handleGroupDeleted = async (groupId) => {
     
     if (file) {
       console.log('📎 File uploaded:', file.name);
-      alert(`קובץ ${file.name} הועלה בהצלחה! (בפרויקט אמיתי כאן יהיה parsing של האקסל)`);
+      alert(`File ${file.name} uploaded successfully! (In a real project, Excel parsing would happen here)`);
     }
   };
 
+  const handleAddGroup = async (groupData) => {
+    const result = await createGroup(groupData); // השתמש בפונקציה מה-hook
+    
+    if (result.success) {
+      setOriginalGroups(prev => [...prev, result.data]);
+      await fetchGroups();
+      alert(`Group "${groupData.name}" was added successfully!`);
+    } else {
+      alert('Error creating group');
+    }
+  };
 
-const handleAddGroup = async (groupData) => {
-  const result = await createGroup(groupData); // השתמש בפונקציה מה-hook
-  
-  if (result.success) {
-    setOriginalGroups(prev => [...prev, result.data]);
-    await fetchGroups();
-    alert(`הקבוצה "${groupData.name}" נוספה בהצלחה!`);
-  } else {
-    alert('שגיאה ביצירת הקבוצה');
-  }
-};
   // קבע איזה נתונים להציג
   const getDisplayData = () => {
     if (hasSearched) {
@@ -212,7 +229,7 @@ const handleAddGroup = async (groupData) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-7xl mx-auto">
-        <Header />
+        {/* <Header /> */}
         
         <div className="bg-white rounded-3xl shadow-xl p-8 mb-6">
           <SearchModeToggle searchMode={searchMode} setSearchMode={setSearchMode} />
@@ -244,12 +261,12 @@ const handleAddGroup = async (groupData) => {
           />
 
           <SearchResults 
-  searchMode={searchMode}
-  users={displayData.users}
-  groups={displayData.groups}
-  onGroupUpdated={handleGroupUpdated}
-  onGroupDeleted={handleGroupDeleted} // ← הוסף את זה
-/>
+            searchMode={searchMode}
+            users={displayData.users}
+            groups={displayData.groups}
+            onGroupUpdated={handleGroupUpdated}
+            onGroupDeleted={handleGroupDeleted}
+          />
         </div>
 
         <FileUpload onFileUpload={handleFileUpload} onSendToServer={handleSendToServer} />
