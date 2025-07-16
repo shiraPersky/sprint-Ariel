@@ -270,6 +270,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 }
 
 export async function createOrUpdateMember(id, data) {
+  console.log("🔥 Incoming data to createOrUpdateMember:", JSON.stringify(data, null, 2));
+
   try {
     // Validate input data
     if (!data || typeof data !== "object") {
@@ -355,7 +357,7 @@ export async function getAllMembers() {
     const members = await getAll();
     return members;
   } catch (error) {
-
     throw new Error('Failed to retrieve members');
+
   }
 }

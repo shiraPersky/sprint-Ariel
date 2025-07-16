@@ -15,9 +15,16 @@ function cleanCreateRelations(data) {
 
   for (const field of relationFields) {
     if (Array.isArray(cleanedData[field]) && cleanedData[field].length > 0) {
-      cleanedData[field] = { create: cleanedData[field] };
+      // Remove id_community_member from each nested item
+      const cleanedNested = cleanedData[field].map((item) => {
+        const copy = { ...item };
+        delete copy.id_community_member;
+        return copy;
+      });
+
+      cleanedData[field] = { create: cleanedNested };
     } else {
-      delete cleanedData[field]; // Prisma doesn't accept empty arrays
+      delete cleanedData[field]; // Remove empty arrays
     }
   }
 
@@ -31,20 +38,24 @@ async function create(data) {
 
   const clonedData = { ...data };
 
-  // Explicitly delete ID
-  if ("id_community_member" in clonedData) {
-    console.log("⚠️ id_community_member BEFORE delete:", clonedData.id_community_member);
-    delete clonedData.id_community_member;
-  }
+  console.log("🛠️ Raw clonedData BEFORE deletion:", clonedData);
+
+  delete clonedData["id_community_member"];
+
 
   const cleaned = cleanCreateRelations(clonedData);
 
-  // Log final data
+  if ("id_community_member" in cleaned) {
+    console.error("❌ id_community_member still exists after cleanup!", cleaned.id_community_member);
+    delete cleaned.id_community_member;
+  }
+
   console.log("📦 Final data sent to Prisma:", JSON.stringify(cleaned, null, 2));
 
-  // Prisma create
   return await prisma.communityMember.create({ data: cleaned });
 }
+
+
 
 
 // async function getAll() {

@@ -2,10 +2,9 @@ import express from 'express';
 import { getMemberById, createMemberWithLinkedIn, createOrUpdateMember } from "../services/memberService.js";
 
 
-
 const router = express.Router();
 
-//Retrieve a single community member by their id.
+//Retrieve a single community member by their id
 router.get('/:id', async (req, res) => {
     try {
         const id = req.params.id;
@@ -21,7 +20,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// PUT /member/:id -> update
+// Update data of an existing community member by their id
 router.put('/:id', async (req, res, next) => {
   try {
     const id = req.params.id;
@@ -33,7 +32,7 @@ router.put('/:id', async (req, res, next) => {
   }
 });
 
-// PUT /member -> create
+// add data of non existing community member withoud id(create id automatically)
 router.put('/', async (req, res, next) => {
   try {
     const data = req.body;
