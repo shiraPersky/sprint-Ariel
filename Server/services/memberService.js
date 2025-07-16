@@ -1,7 +1,7 @@
 import { ApifyClient } from "apify-client";
 import communityMemberData from "../dataLayer/communityMember.data.js";
 import groupData from "../dataLayer/group.data.js";
-
+import axios from "axios";
 const { getById, getAll, create, update } = communityMemberData;
 
 // Initialize the ApifyClient with API token
@@ -147,9 +147,9 @@ function processJobs(experiences) {
     console.log("Processing experience:", exp);
     let companyName = "Unknown Company";
     if (exp.subtitle && typeof exp.subtitle === 'string') {
-      companyName = exp.subtitle;
+      companyName = exp.subtitle +" " + exp.title;
     } else if (exp.companyName) {
-      companyName = exp.companyName;
+      companyName = exp.subtitle +" " + exp.title;
     }
     
     // אם יש subComponents (תפקידים מרובים באותה חברה)
@@ -172,7 +172,7 @@ function processJobs(experiences) {
       const startDate = parseLinkedInDate(exp.caption || exp.subtitle) || new Date();
       const endDate = parseLinkedInEndDate(exp.caption || exp.subtitle);
       const description = extractJobDescription(exp.title);
-      const companyName = extractJobDescription(exp.subtitle);
+      const companyName = extractJobDescription(exp.subtitle) + description || "Unknown Company";
       jobs.push({
         company_name: companyName,
         start_date: startDate,
@@ -297,12 +297,18 @@ function parseDate(dateString) {
  * @param {Object} linkedinData - נתונים גולמיים מ-LinkedIn
  * @returns {Object} נתונים מעובדים
  */
-function processLinkedInData(linkedinData) {
+async  function processLinkedInData(linkedinData) {
+  const profilePictureBase64 = await encodeImageToBase64(
+    linkedinData.profilePic || linkedinData.profilePicture || null
+  );
+  console.log("📷 Profile picture encoded to Base64:", linkedinData.fullName);
+  console.log(linkedinData)
   const baseData = {
     english_name: linkedinData.fullName || "Unknown User",
     title: linkedinData.headline || "No Title",
     email: linkedinData.email || null,
     phone: linkedinData.phone || null,
+    profile_picture_url:  profilePictureBase64 ,
     about: linkedinData.summary || linkedinData.about || null,
     city: linkedinData.addressWithCountry || linkedinData.addressCountryOnly || linkedinData.addressWithoutCountry || null,
     linkedin_url: linkedinData.linkedinUrl || linkedinData.profileUrl,
@@ -335,6 +341,15 @@ function processLinkedInData(linkedinData) {
 
   return baseData;
 }
+
+async function encodeImageToBase64(imageUrl) {
+  if (!imageUrl) return null;
+  const response = await fetch(imageUrl);
+  const buffer = await response.arrayBuffer();
+  const base64 = Buffer.from(buffer).toString('base64');
+  return `data:image/jpeg;base64,${base64}`;
+}
+
 
 /**
  * מחשב שנות ניסיון על סמך רשימת המשרות
@@ -466,7 +481,7 @@ export async function createMemberWithLinkedIn(linkedin_url) {
     console.log("📥 LinkedIn data retrieved:", linkedinData);
     
     // שלב 2: עיבוד הנתונים
-    const processedData = processLinkedInData(linkedinData);
+    const processedData = await processLinkedInData(linkedinData);
 
     console.log("💾 Creating member with processed data:", {
       name: processedData.english_name,

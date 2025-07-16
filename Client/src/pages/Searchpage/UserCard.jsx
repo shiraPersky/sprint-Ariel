@@ -17,14 +17,28 @@ const UserCard = ({ user }) => {
       onClick={handleClick}
     >
       <div className="flex items-center mb-3">
-        <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center ml-3">
-          <User className="w-6 h-6 text-gray-600" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-bold text-sm text-gray-800 truncate">{user.english_name}</h3>
-          <p className="text-blue-600 font-medium text-xs truncate">{user.title}</p>
-        </div>
-      </div>
+  {user.profile_picture_url ? (
+    <img
+      src={user.profile_picture_url}
+      alt={user.english_name}
+      className="w-12 h-12 rounded-full object-cover ml-3"
+    />
+  ) : (
+    <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center ml-3">
+      <User className="w-6 h-6 text-gray-600" />
+    </div>
+  )}
+
+  <div className="flex-1 min-w-0">
+    <h3 className="font-bold text-sm text-gray-800 truncate">
+      {user.english_name}
+    </h3>
+    <p className="text-blue-600 font-medium text-xs truncate">
+      {user.title}
+    </p>
+  </div>
+</div>
+
       
       <div className="space-y-1 text-xs text-gray-600 mb-3">
         <p className="flex items-center truncate">

@@ -209,9 +209,17 @@ export default function EditableUserProfile() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4 flex-grow">
               <div className="relative">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg">
-                  {getInitials(formData.english_name) || "U"}
-                </div>
+                {formData.profile_picture_url ? (
+  <img
+    src={formData.profile_picture_url}
+    alt={formData.english_name}
+    className="w-16 h-16 rounded-full object-cover shadow-lg"
+  />
+) : (
+  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg">
+    {getInitials(formData.english_name) || "U"}
+  </div>
+)}
                 <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white"></div>
               </div>
               <div className="flex-grow space-y-2">
