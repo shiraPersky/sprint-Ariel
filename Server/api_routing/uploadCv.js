@@ -17,6 +17,8 @@ router.post('/', upload.single('cv'), async (req, res) => {
     res.json({ success: true, extractedText: text });
   } catch (error) {
     console.error('CV upload error:', error);
+    console.error('CV upload error:', error); 
+
     res.status(500).json({ success: false, error: 'Failed to parse CV' });
   }
 });

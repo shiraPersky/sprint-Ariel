@@ -1,43 +1,7 @@
-import React from 'react';
-import useCvUpload from './hooks/useCvUpload'; 
+import React, { useState } from 'react';
+import useCvUpload from './hooks/useCvUpload';
 import CvUploadBox from './components/CvUploadBox';
 import CvProgressBar from './components/CvProgressBar';
-import { useState } from 'react';
-
-
-const [loading, setLoading] = useState(false);
-const [error, setError] = useState(null);
-
-const handleExtract = async () => {
-  if (!selectedFile) return;
-
-  setLoading(true);
-  setError(null);
-
-  try {
-    const formData = new FormData();
-    formData.append('cv', selectedFile);
-
-    const res = await fetch('http://localhost:5000/upload-cv', {
-      method: 'POST',
-      body: formData,
-    });
-
-    const data = await res.json();
-    if (!data.success) {
-      setError(data.error || 'Failed to extract data');
-    }
-
-    // 💡 You can log it or call AI here later
-    console.log('Extracted:', data.extractedText);
-  } catch (err) {
-    console.error('Upload error:', err);
-    setError('Something went wrong during upload');
-  } finally {
-    setLoading(false);
-  }
-};
-
 
 const CvMainUploadComponent = () => {
   const {
@@ -51,6 +15,38 @@ const CvMainUploadComponent = () => {
     simulateUpload,
     resetUpload,
   } = useCvUpload();
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleExtract = async () => {
+    if (!selectedFile) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('cv', selectedFile);
+
+      const res = await fetch('http://localhost:5000/upload-cv', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!data.success) {
+        setError(data.error || 'Failed to extract data');
+      }
+
+      console.log('Extracted:', data.extractedText);
+    } catch (err) {
+      console.error('Upload error:', err);
+      setError('Something went wrong during upload');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const showProgress = selectedFile && !uploadSuccess && uploadProgress < 100;
   const showPreview = selectedFile && uploadSuccess;
@@ -99,13 +95,16 @@ const CvMainUploadComponent = () => {
           </div>
 
           <button
-                onClick={handleExtract}
-                disabled={loading}
-                className="flex items-center gap-2 bg-blue-600 text-white font-medium px-6 py-2 rounded-full hover:bg-blue-700 transition duration-200 shadow-md"
-                >
-                {loading ? '🔄 Analyzing...' : '📄 Extract My Data from the CV'}
-            </button>
+            onClick={handleExtract}
+            disabled={loading}
+            className="flex items-center gap-2 bg-blue-600 text-white font-medium px-6 py-2 rounded-full hover:bg-blue-700 transition duration-200 shadow-md"
+          >
+            {loading ? '🔄 Analyzing...' : '📄 Extract My Data from the CV'}
+          </button>
 
+          {error && (
+            <p className="text-red-600 text-sm mt-2">{error}</p>
+          )}
         </div>
       )}
     </div>

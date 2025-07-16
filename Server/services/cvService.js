@@ -1,4 +1,5 @@
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.js';
+import pdfjsLib from 'pdfjs-dist/legacy/build/pdf.js';
+
 
 export async function extractTextFromPdfBuffer(buffer) {
   const loadingTask = pdfjsLib.getDocument({ data: buffer });
