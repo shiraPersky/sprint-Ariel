@@ -54,6 +54,27 @@ async function getAllWithParticipants() {
   }));
 }
 
+async function getAvailableMembersForEvent(id_event) {
+  const existing = await prisma.participantEvent.findMany({
+    where: { id_event },
+    select: { id_community_member: true }
+  });
+
+  const excludedIds = existing.map((m) => m.id_community_member);
+
+  const members = await prisma.communityMember.findMany({
+    where: {
+      id_community_member: { notIn: excludedIds },
+      active: true
+    },
+    select: {
+      id_community_member: true,
+      english_name: true
+    }
+  });
+
+  return members;
+}
 
 export default {
   create,
@@ -62,4 +83,5 @@ export default {
   update,
   remove,
   getAllWithParticipants,
+  getAvailableMembersForEvent,
 };
