@@ -1,6 +1,7 @@
 // קומפוננט Dropdown לקבוצות
 import React from "react";
 import { Users, ChevronDown, Loader2 } from "lucide-react";
+
 const GroupsDropdown = ({
   availableGroups,
   selectedGroups,
@@ -24,7 +25,7 @@ const GroupsDropdown = ({
       />
     </button>
     {isOpen && (
-      <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
+      <div className="absolute top-full left-0 mt-1 w-full min-w-[250px] bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
         {loading ? (
           <div className="flex items-center justify-center py-4">
             <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
@@ -34,15 +35,17 @@ const GroupsDropdown = ({
           availableGroups.map((group) => (
             <label
               key={group.id_group}
-              className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
+              className="flex items-center px-3 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 w-full"
             >
               <input
                 type="checkbox"
                 checked={selectedGroups.includes(group.id_group)}
                 onChange={() => onGroupChange(group.id_group)}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 ml-2"
+                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 ml-2 flex-shrink-0"
               />
-              <span className="text-sm text-gray-700">{group.group_name}</span>
+              <span className="text-sm text-gray-700 flex-1 whitespace-nowrap overflow-hidden text-ellipsis">
+                {group.group_name}
+              </span>
             </label>
           ))
         )}
@@ -50,4 +53,5 @@ const GroupsDropdown = ({
     )}
   </div>
 );
+
 export default GroupsDropdown;

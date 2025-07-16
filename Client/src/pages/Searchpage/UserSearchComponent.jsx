@@ -1,4 +1,3 @@
-// הקומפוננט הראשי - מעודכן עם טעינת נתונים ראשונית ותיקון לוגיקת החיפוש
 import React, { useState, useEffect } from 'react';
 import { Search, Users, UserCheck, Upload, Filter, MapPin, Briefcase, GraduationCap, Calendar, Building, Award, ChevronDown, Loader2 } from 'lucide-react';
 // import useServerRequests from './useServerRequests';
@@ -10,6 +9,8 @@ import ActionButtons from './ActionButtons';
 import GroupsFilter from './GroupsFilter';
 import SearchResults from './SearchResults';
 import FileUpload from './FileUpload';
+import AddGroupModal from './AddGroupModal';
+
 
 const UserSearchComponent = () => {
   const [searchMode, setSearchMode] = useState('users');
@@ -25,6 +26,7 @@ const UserSearchComponent = () => {
   const [hasSearched, setHasSearched] = useState(false);
   
   const [isGroupsDropdownOpen, setIsGroupsDropdownOpen] = useState(false);
+  const [isAddGroupModalOpen, setIsAddGroupModalOpen] = useState(false);
 
   const {
     loading,
@@ -34,8 +36,11 @@ const UserSearchComponent = () => {
     getAllGroups,
     fetchGroups,
     searchUsers,
+    updateGroupName,
+    deleteGroup,
     uploadExcelFile,
-    searchGroups
+    searchGroups,
+    createGroup
   } = useServerRequestsMock();
 
   // טעינה ראשונית - טוען קבוצות לפילטר + כל הנתונים לתצוגה
@@ -64,6 +69,20 @@ const UserSearchComponent = () => {
     loadInitialData();
   }, []);
 
+  // חיפוש אוטומטי כאשר משנים את מצב החיפוש
+  useEffect(() => {
+    // בצע חיפוש רק אם יש טקסט חיפוש או פילטרים
+    if (searchText.trim() || (searchMode === 'users' && selectedGroups.length > 0)) {
+      console.log('🔄 Search mode changed, performing automatic search...', { searchMode, searchText, selectedGroups });
+      handleSearch();
+    } else if (hasSearched) {
+      // אם אין טקסט חיפוש אבל כבר בוצע חיפוש קודם, אפס את התוצאות
+      console.log('🧹 No search criteria, resetting to show all data...');
+      setSearchResults([]);
+      setHasSearched(false);
+    }
+  }, [searchMode]); // רק כאשר searchMode משתנה
+
   const handleGroupChange = (groupId) => {
     setSelectedGroups(prev => 
       prev.includes(groupId) 
@@ -72,59 +91,80 @@ const UserSearchComponent = () => {
     );
   };
 
+  const handleGroupUpdated = async (groupId, newName) => {
+    console.log('🚀 Updating group name:', { groupId, newName });
+    await updateGroupName(groupId, newName);
+    // רענן את הקבוצות
+    const refreshedGroups = await getAllGroups();
+    const groupsArray = refreshedGroups.success ? refreshedGroups.data : [];
+    setOriginalGroups(groupsArray);
+    await fetchGroups(); // עדכן גם את הפילטר
+  };
+
   const getSelectedGroupNames = () => {
     return selectedGroups.map(groupId => {
       const group = availableGroups.find(g => g.id === groupId);
       return group ? group.name : '';
     }).filter(name => name);
   };
-const handleSendToServer = async (file) => {
-  try {
-    const result = await uploadExcelFile(file);
-    console.log('📤 File upload result:', result);
-    
-    // הצגת הודעת הצלחה
-    alert(`הקובץ ${file.name} הועלה בהצלחה!`);
-    
-    // טען מחדש את כל המשתמשים ועדכן את הstate
-    console.log('🔄 Refreshing users data after upload...');
-    const refreshedUsers = await getAllUsers();
-    setOriginalUsers(refreshedUsers);
-    
-    // טען מחדש את הקבוצות גם
-    console.log('🔄 Refreshing groups data after upload...');
+
+  const handleGroupDeleted = async (groupId) => {
+    console.log('🗑️ Deleting group:', groupId);
+    await deleteGroup(groupId);
+    // רענן את הקבוצות
     const refreshedGroups = await getAllGroups();
     const groupsArray = refreshedGroups.success ? refreshedGroups.data : [];
     setOriginalGroups(groupsArray);
-    
-    // נקה את תוצאות החיפוש כדי להציג את כל הנתונים המעודכנים
-    setSearchResults([]);
-    setHasSearched(false);
-    
-    // אם השרת מחזיר נתונים חדשים נוספים, עדכן את הstate
-    if (result.data) {
-      if (result.data.users) {
-        setOriginalUsers(prev => [...prev, ...result.data.users]);
+    await fetchGroups(); // עדכן גם את הפילטר
+  };
+
+  const handleSendToServer = async (file) => {
+    try {
+      const result = await uploadExcelFile(file);
+      console.log('📤 File upload result:', result);
+      
+      // הצגת הודעת הצלחה
+      alert(`The file ${file.name} was uploaded successfully!`);
+      
+      // טען מחדש את כל המשתמשים ועדכן את הstate
+      console.log('🔄 Refreshing users data after upload...');
+      const refreshedUsers = await getAllUsers();
+      setOriginalUsers(refreshedUsers);
+      
+      // טען מחדש את הקבוצות גם
+      console.log('🔄 Refreshing groups data after upload...');
+      const refreshedGroups = await getAllGroups();
+      const groupsArray = refreshedGroups.success ? refreshedGroups.data : [];
+      setOriginalGroups(groupsArray);
+      
+      // נקה את תוצאות החיפוש כדי להציג את כל הנתונים המעודכנים
+      setSearchResults([]);
+      setHasSearched(false);
+      
+      // אם השרת מחזיר נתונים חדשים נוספים, עדכן את הstate
+      if (result.data) {
+        if (result.data.users) {
+          setOriginalUsers(prev => [...prev, ...result.data.users]);
+        }
+        if (result.data.groups) {
+          setOriginalGroups(prev => [...prev, ...result.data.groups]);
+        }
       }
-      if (result.data.groups) {
-        setOriginalGroups(prev => [...prev, ...result.data.groups]);
-      }
+      
+      console.log('✅ Data refreshed successfully after upload');
+      return result;
+      
+    } catch (error) {
+      // השגיאה כבר מטופלת ב-hook
+      console.error('Upload failed:', error);
     }
-    
-    console.log('✅ Data refreshed successfully after upload');
-    return result;
-    
-  } catch (error) {
-    // השגיאה כבר מטופלת ב-hook
-    console.error('Upload failed:', error);
-  }
-};
+  };
+
   const handleSearch = async () => {
     console.log('🔍 Starting search...', { searchMode, searchText, selectedGroups });
     
     if (searchMode === 'users') {
       const results = await searchUsers(searchText, selectedGroups);
-
       console.log('📊 Search results:', results);
       setSearchResults(results.data || []);
     } else {
@@ -153,7 +193,19 @@ const handleSendToServer = async (file) => {
     
     if (file) {
       console.log('📎 File uploaded:', file.name);
-      alert(`קובץ ${file.name} הועלה בהצלחה! (בפרויקט אמיתי כאן יהיה parsing של האקסל)`);
+      alert(`File ${file.name} uploaded successfully! (In a real project, Excel parsing would happen here)`);
+    }
+  };
+
+  const handleAddGroup = async (groupData) => {
+    const result = await createGroup(groupData); // השתמש בפונקציה מה-hook
+    
+    if (result.success) {
+      setOriginalGroups(prev => [...prev, result.data]);
+      await fetchGroups();
+      alert(`Group "${groupData.name}" was added successfully!`);
+    } else {
+      alert('Error creating group');
     }
   };
 
@@ -177,7 +229,7 @@ const handleSendToServer = async (file) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-7xl mx-auto">
-        <Header />
+        {/* <Header /> */}
         
         <div className="bg-white rounded-3xl shadow-xl p-8 mb-6">
           <SearchModeToggle searchMode={searchMode} setSearchMode={setSearchMode} />
@@ -204,16 +256,26 @@ const handleSendToServer = async (file) => {
             onClear={clearFilters}
             onSearch={handleSearch}
             loading={loading}
+            searchMode={searchMode}
+            onAddGroup={() => setIsAddGroupModalOpen(true)}
           />
 
           <SearchResults 
             searchMode={searchMode}
             users={displayData.users}
             groups={displayData.groups}
+            onGroupUpdated={handleGroupUpdated}
+            onGroupDeleted={handleGroupDeleted}
           />
         </div>
 
         <FileUpload onFileUpload={handleFileUpload} onSendToServer={handleSendToServer} />
+        
+        <AddGroupModal 
+          isOpen={isAddGroupModalOpen}
+          onClose={() => setIsAddGroupModalOpen(false)}
+          onAddGroup={handleAddGroup}
+        />
       </div>
     </div>
   );

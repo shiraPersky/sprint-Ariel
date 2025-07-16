@@ -6,7 +6,11 @@ import communityMemberRoutes from './api_routing/community_member.js';
 import memberRoutes from './api_routing/members.js';
 import communitiesRoutes from './api_routing/communities.js';
 import excelUploadRoutes from './api_routing/excel_upload.js'; // הוספת הroute החדש
+
 import uploadRoutes from './api_routing/uploadCv.js'; 
+
+import eventRoutes from './api_routing/events.js';
+
 const app = express();
 
 // הגדלת limit עבור קבצים גדולים
@@ -24,8 +28,11 @@ app.use('/member', communityMemberRoutes);
 app.use('/members', memberRoutes);
 app.use("/communities", communitiesRoutes);
 app.use('/excel', excelUploadRoutes); // הוספת הroute להעלאת Excel
+
 app.use('/upload-cv', uploadRoutes); 
 
+
+app.use('/events',eventRoutes);
 
 //app.use('/manager/search', searchRoutes);
 

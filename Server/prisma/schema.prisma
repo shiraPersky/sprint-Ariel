@@ -8,7 +8,7 @@ datasource db {
 }
 
 model CommunityMember {
-  id_community_member Int     @id @default(autoincrement())
+  id_community_member Int                         @id @default(autoincrement())
   english_name        String
   title               String?
   about               String?
@@ -18,30 +18,29 @@ model CommunityMember {
   linkedin_url        String?
   facebook_url        String?
   additional_info     String?
-  wants_updates       Boolean @default(false)
-  active       Boolean @default(true)
+  wants_updates       Boolean                     @default(false)
+  active              Boolean                     @default(true)
   admin_notes         String?
-  years_of_experience Float?
+  profile_picture_url String?
 
-  // Relations
-  participantEvents   ParticipantEvent[]
+  years_of_experience Float?
+  community_value_id  Int?
   groupMemberships    GroupMember[]
-  participantValues   ParticipantCommunityValue[]
   jobs                Job[]
+  participantValues   ParticipantCommunityValue[]
+  participantEvents   ParticipantEvent[]
   skills              Skill[]
   tags                Tag[]
-  community_value_id  Int?
-  
+
   @@map("community_member")
 }
 
 model Event {
-  id_event  Int    @id @default(autoincrement())
-  description        String
-  type      String?
-  time      DateTime
-  location  String?
-
+  id_event          Int                @id @default(autoincrement())
+  description       String
+  type              String?
+  time              DateTime
+  location          String?
   participantEvents ParticipantEvent[]
 
   @@map("events")
@@ -50,19 +49,17 @@ model Event {
 model ParticipantEvent {
   id_community_member Int
   id_event            Int
-
-  member CommunityMember @relation(fields: [id_community_member], references: [id_community_member])
-  event  Event           @relation(fields: [id_event], references: [id_event])
+  member              CommunityMember @relation(fields: [id_community_member], references: [id_community_member])
+  event               Event           @relation(fields: [id_event], references: [id_event])
 
   @@id([id_community_member, id_event])
   @@map("participant_events")
 }
 
 model Group {
-  id_group   Int    @id @default(autoincrement())
+  id_group   Int           @id @default(autoincrement())
   group_name String
-
-  members GroupMember[]
+  members    GroupMember[]
 
   @@map("groups")
 }
@@ -70,65 +67,59 @@ model Group {
 model GroupMember {
   id_community_member Int
   id_group            Int
-
-  member CommunityMember @relation(fields: [id_community_member], references: [id_community_member])
-  group  Group           @relation(fields: [id_group], references: [id_group])
+  member              CommunityMember @relation(fields: [id_community_member], references: [id_community_member])
+  group               Group           @relation(fields: [id_group], references: [id_group])
 
   @@id([id_community_member, id_group])
   @@map("group_member")
 }
 
 model CommunityValue {
-  id_community_value Int @id @default(autoincrement())
+  id_community_value Int                         @id @default(autoincrement())
   type               String
-
-  members ParticipantCommunityValue[]
+  members            ParticipantCommunityValue[]
 
   @@map("community_value")
 }
 
 model ParticipantCommunityValue {
-  id_community_member  Int
-  id_community_value   Int
-  description          String?
-
-  member CommunityMember   @relation(fields: [id_community_member], references: [id_community_member])
-  value  CommunityValue    @relation(fields: [id_community_value], references: [id_community_value])
+  id_community_member Int
+  id_community_value  Int
+  description         String?
+  member              CommunityMember @relation(fields: [id_community_member], references: [id_community_member])
+  value               CommunityValue  @relation(fields: [id_community_value], references: [id_community_value])
 
   @@id([id_community_member, id_community_value])
   @@map("participant_comunity_value")
 }
 
 model Job {
-  id_job              Int      @id @default(autoincrement())
+  id_job              Int             @id @default(autoincrement())
   company_name        String
   id_community_member Int
   start_date          DateTime
   end_date            DateTime?
   icon                String?
   description         String?
-
-  member CommunityMember @relation(fields: [id_community_member], references: [id_community_member])
+  member              CommunityMember @relation(fields: [id_community_member], references: [id_community_member])
 
   @@map("jobs")
 }
 
 model Skill {
-  id_skill            Int      @id @default(autoincrement())
+  id_skill            Int             @id @default(autoincrement())
   id_community_member Int
   description         String
-
-  member CommunityMember @relation(fields: [id_community_member], references: [id_community_member])
+  member              CommunityMember @relation(fields: [id_community_member], references: [id_community_member])
 
   @@map("skills")
 }
 
 model Tag {
-  id_tag              Int      @id @default(autoincrement())
+  id_tag              Int             @id @default(autoincrement())
   id_community_member Int
   tag                 String
-
-  member CommunityMember @relation(fields: [id_community_member], references: [id_community_member])
+  member              CommunityMember @relation(fields: [id_community_member], references: [id_community_member])
 
   @@map("tags")
 }

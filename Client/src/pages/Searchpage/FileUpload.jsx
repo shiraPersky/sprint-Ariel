@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, Send, File, X, Loader2 } from 'lucide-react';
+import { Upload, Send, File, X, Loader2, Info } from 'lucide-react';
 
 const FileUpload = ({ onFileUpload, onSendToServer }) => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -12,7 +12,7 @@ const FileUpload = ({ onFileUpload, onSendToServer }) => {
       setSelectedFile(file);
       console.log('📁 File selected:', file.name);
       
-      // קרא לפונקציה שמעבדת את הקובץ
+      // Call the function that processes the file
       if (onFileUpload) {
         onFileUpload(file);
       }
@@ -21,12 +21,12 @@ const FileUpload = ({ onFileUpload, onSendToServer }) => {
 
   const handleSendToServer = async () => {
     if (!selectedFile) {
-      alert('אנא בחר קובץ תחילה');
+      alert('Please select a file first');
       return;
     }
 
     if (!onSendToServer) {
-      alert('פונקציית שליחה לא זמינה');
+      alert('Upload function is not available');
       return;
     }
 
@@ -37,11 +37,11 @@ const FileUpload = ({ onFileUpload, onSendToServer }) => {
       await onSendToServer(selectedFile);
       
       console.log('✅ File sent successfully');
-      // אפשר להוסיף הודעת הצלחה כאן
+      // You can add a success message here
       
     } catch (error) {
       console.error('❌ Error sending file:', error);
-      alert('שגיאה בשליחת הקובץ לשרת');
+      alert('Error sending file to server');
     } finally {
       setSending(false);
     }
@@ -49,7 +49,7 @@ const FileUpload = ({ onFileUpload, onSendToServer }) => {
 
   const handleRemoveFile = () => {
     setSelectedFile(null);
-    // אפס את ה-input
+    // Reset the input
     const fileInput = document.getElementById('excel-upload');
     if (fileInput) {
       fileInput.value = '';
@@ -59,15 +59,34 @@ const FileUpload = ({ onFileUpload, onSendToServer }) => {
   return (
     <div className="bg-white rounded-3xl shadow-xl p-8">
       <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
-        העלאת קובץ אקסל
+        Upload Excel File
       </h2>
       
+      {/* Format Requirements */}
+      <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-6">
+        <div className="flex items-start">
+          <Info className="w-5 h-5 text-blue-600 mt-1 ml-2 flex-shrink-0" />
+          <div>
+            <h3 className="font-semibold text-blue-800 mb-2">Required File Format:</h3>
+            <ul className="text-sm text-blue-700 space-y-1">
+              <li>• Excel file (.xlsx or .xls)</li>
+              <li>• One column containing LinkedIn profile URLs</li>
+              <li>• Each row should contain a different LinkedIn profile link</li>
+              <li>• Example: https://www.linkedin.com/in/username</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      
       {!selectedFile ? (
-        // אזור בחירת קובץ
+        // File selection area
         <div className="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:border-blue-500 transition-colors">
           <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
           <p className="text-gray-600 mb-4">
-            גרור קובץ אקסל לכאן או לחץ לבחירת קובץ
+            Drag an Excel file here or click to select a file
+          </p>
+          <p className="text-sm text-gray-500 mb-4">
+            Make sure your file contains LinkedIn profile URLs in a single column
           </p>
           <input
             type="file"
@@ -81,13 +100,13 @@ const FileUpload = ({ onFileUpload, onSendToServer }) => {
             className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white rounded-xl cursor-pointer transition-all transform hover:scale-105"
           >
             <Upload className="w-5 h-5 ml-2" />
-            בחר קובץ אקסל
+            Select Excel File
           </label>
         </div>
       ) : (
-        // הצגת הקובץ הנבחר וכפתורים
+        // Display selected file and buttons
         <div className="space-y-6">
-          {/* פרטי הקובץ */}
+          {/* File details */}
           <div className="bg-gray-50 rounded-2xl p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
@@ -109,9 +128,9 @@ const FileUpload = ({ onFileUpload, onSendToServer }) => {
             </div>
           </div>
 
-          {/* כפתורי פעולה */}
+          {/* Action buttons */}
           <div className="flex gap-4">
-            {/* כפתור שליחה לשרת */}
+            {/* Send to server button */}
             <button
               onClick={handleSendToServer}
               disabled={sending || !onSendToServer}
@@ -120,29 +139,29 @@ const FileUpload = ({ onFileUpload, onSendToServer }) => {
               {sending ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin ml-2" />
-                  שולח לשרת...
+                  Sending to server...
                 </>
               ) : (
                 <>
                   <Send className="w-5 h-5 ml-2" />
-                  שלח לשרת
+                  Send to Server
                 </>
               )}
             </button>
 
-            {/* כפתור בחירת קובץ אחר */}
+            {/* Select another file button */}
             <label
               htmlFor="excel-upload"
               className="flex items-center justify-center px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl cursor-pointer transition-all"
             >
               <Upload className="w-5 h-5 ml-2" />
-              בחר קובץ אחר
+              Select Another File
             </label>
           </div>
 
-          {/* הודעת מידע */}
+          {/* Info message */}
           <div className="text-center text-sm text-gray-600">
-            הקובץ מוכן לשליחה לשרת. לחץ על "שלח לשרת" כדי להעלות את הנתונים.
+            File is ready to be sent to server. Click "Send to Server" to upload the data.
           </div>
         </div>
       )}

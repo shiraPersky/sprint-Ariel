@@ -1,7 +1,7 @@
 // GroupDetailsPage.js - דף פרטי קבוצה עם רשימת חברים - עם קריאת API אמיתית
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowRight, Users, Building, Tag, Loader2, UserPlus, UserMinus, Trash2, X } from 'lucide-react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { Users, Building, Tag, Loader2, UserPlus, UserMinus, Trash2, X, ArrowLeft } from 'lucide-react';
 import useServerRequestsMock from '../Searchpage/testcomp'; // או useServerRequests
 import UserCard from '../Searchpage/UserCard';
 import AddUsersModal from './AddUsersModal';
@@ -9,6 +9,8 @@ import AddUsersModal from './AddUsersModal';
 const GroupDetailsPage = () => {
   const { groupId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  
   const [group, setGroup] = useState(null);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,13 +19,46 @@ const GroupDetailsPage = () => {
   const [deleteMode, setDeleteMode] = useState(false);
   const [selectedForDeletion, setSelectedForDeletion] = useState([]);
   const [deleting, setDeleting] = useState(false);
-
+  
+  // קבלת נתוני הקבוצה מה-state
+  const groupData = location.state?.group;
+  
   const { 
-    getGroupDetails, 
     getAvailableUsersForGroup, 
     addUsersToGroup,
-    removeUsersFromGroup
+    removeUsersFromGroup,
   } = useServerRequestsMock();
+
+  // פונקציה לטעינת פרטי הקבוצה מהשרת
+  const getGroupDetails = async (groupId) => {
+    try {
+      console.log('🔄 Fetching group details for group:', groupId);
+      
+      const response = await fetch(`http://localhost:5000/communities/group/${groupId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Group details API Response:', result);
+
+      if (result.success) {
+        return result.data;
+      } else {
+        console.error('❌ API returned error:', result);
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ Error fetching group details:', error);
+      throw error;
+    }
+  };
 
   // פונקציה לטעינת חברי הקבוצה מהשרת
   const getGroupMembers = async (groupId) => {
@@ -52,7 +87,7 @@ const GroupDetailsPage = () => {
             id: member.id_community_member,
             english_name: member.english_name,
             position: member.title,
-            company: member.about, // או שדה אחר שמתאים לחברה
+            company: member.about,
             email: member.email,
             phone: member.phone,
             city: member.city,
@@ -65,7 +100,7 @@ const GroupDetailsPage = () => {
             admin_notes: member.admin_notes,
             community_value_id: member.community_value_id,
             // שדות נוספים לתצוגה טובה יותר
-            image: member.image || '/api/placeholder/400/400', // תמונת ברירת מחדל
+            profile_picture_url: member.profile_picture_url || null,
             description: member.additional_info || member.about
           };
         });
@@ -89,7 +124,7 @@ const GroupDetailsPage = () => {
       setMembers(updatedMembers);
     } catch (error) {
       console.error('Error reloading members:', error);
-      alert('שגיאה בטעינת רשימת החברים המעודכנת');
+      alert('Error loading updated member list');
     } finally {
       setMembersLoading(false);
     }
@@ -99,19 +134,27 @@ const GroupDetailsPage = () => {
     const loadGroupData = async () => {
       try {
         console.log('🔄 Loading group data for ID:', groupId);
+        console.log('📦 Group data from location state:', groupData);
         
-        // טען פרטי קבוצה וחברים במקביל
-        const [groupDetails, groupMembers] = await Promise.all([
-          getGroupDetails(groupId),
-          getGroupMembers(groupId)
-        ]);
+        // אם יש נתונים מה-state, השתמש בהם, אחרת טען מהשרת
+        let groupDetails = groupData;
+        if (!groupDetails) {
+          console.log('📡 No group data in state, fetching from server...');
+          groupDetails = await getGroupDetails(groupId);
+        }
+        
+        // טען חברי הקבוצה
+        const groupMembers = await getGroupMembers(groupId);
+        
+        console.log('✅ Final group data:', groupDetails);
+        console.log('✅ Group members:', groupMembers);
         
         setGroup(groupDetails);
         setMembers(groupMembers);
         
       } catch (error) {
-        console.error('Error loading group data:', error);
-        alert('שגיאה בטעינת נתוני הקבוצה');
+        console.error('❌ Error loading group data:', error);
+        alert('Error loading group data');
       } finally {
         setLoading(false);
         setMembersLoading(false);
@@ -121,43 +164,38 @@ const GroupDetailsPage = () => {
     if (groupId) {
       loadGroupData();
     }
-  }, [groupId]);
+  }, [groupId, groupData]);
 
   const handleUserClick = (user) => {
     if (deleteMode) {
-      // במצב מחיקה - הוסף/הסר משתמש מרשימת המחיקה
       setSelectedForDeletion(prev => 
         prev.includes(user.id)
           ? prev.filter(id => id !== user.id)
           : [...prev, user.id]
       );
     } else {
-      // במצב רגיל - עבור לדף המשתמש
       navigate(`/member/${user.id}/data`);
     }
   };
 
-  // הפעלת מצב מחיקה
   const enterDeleteMode = () => {
     setDeleteMode(true);
     setSelectedForDeletion([]);
   };
 
-  // יציאה ממצב מחיקה
   const exitDeleteMode = () => {
     setDeleteMode(false);
     setSelectedForDeletion([]);
   };
 
-  // מחיקת משתמשים נבחרים
   const handleDeleteUsers = async () => {
     if (selectedForDeletion.length === 0) {
-      alert('אנא בחר לפחות משתמש אחד למחיקה');
+      alert('Please select at least one user to delete');
       return;
     }
 
     const confirmDelete = window.confirm(
-      `האם אתה בטוח שברצונך להסיר ${selectedForDeletion.length} משתמשים מהקבוצה?`
+      `Are you sure you want to remove ${selectedForDeletion.length} users from the group?`
     );
 
     if (!confirmDelete) return;
@@ -170,31 +208,26 @@ const GroupDetailsPage = () => {
       
       if (result && result.success) {
         const count = result.removedCount || selectedForDeletion.length;
-        alert(`${count} משתמשים הוסרו בהצלחה מהקבוצה!`);
+        alert(`${count} users removed successfully from the group!`);
         
-        // עדכן את רשימת החברים
         await handleUsersAdded();
-        
-        // צא ממצב מחיקה
         exitDeleteMode();
       } else {
-        const errorMsg = result?.error || 'שגיאה לא ידועה';
-        alert('שגיאה בהסרת משתמשים: ' + errorMsg);
+        const errorMsg = result?.error || 'Unknown error';
+        alert('Error removing users: ' + errorMsg);
       }
     } catch (error) {
       console.error('❌ Error removing users:', error);
-      alert('שגיאה בהסרת משתמשים מהקבוצה');
+      alert('Error removing users from group');
     } finally {
       setDeleting(false);
     }
   };
 
-  // בחירת כל המשתמשים למחיקה
   const selectAllForDeletion = () => {
     setSelectedForDeletion(members.map(member => member.id));
   };
 
-  // ביטול בחירת כל המשתמשים
   const selectNoneForDeletion = () => {
     setSelectedForDeletion([]);
   };
@@ -204,7 +237,7 @@ const GroupDetailsPage = () => {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="flex items-center space-x-2">
           <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-          <span className="text-lg text-gray-600">טוען פרטי קבוצה...</span>
+          <span className="text-lg text-gray-600">Loading group details...</span>
         </div>
       </div>
     );
@@ -214,12 +247,12 @@ const GroupDetailsPage = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">קבוצה לא נמצאה</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Group not found</h2>
           <button
             onClick={() => navigate('/UserSearch')}
             className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
           >
-            חזרה לחיפוש
+            Back to Search
           </button>
         </div>
       </div>
@@ -233,10 +266,10 @@ const GroupDetailsPage = () => {
         {/* כפתור חזרה */}
         <button
           onClick={() => navigate('/UserSearch')}
-          className="flex items-center mb-6 px-4 py-2 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+          className="flex items-center mb-6 px-4 py-2 bg-white rounded-lg shadow hover:bg-gray-50 transition-all"
         >
-          <ArrowRight className="w-5 h-5 ml-2" />
-          חזרה לחיפוש
+          <ArrowLeft className="w-5 h-5 ml-2" />
+          Back to Search
         </button>
 
         {/* כותרת הקבוצה */}
@@ -246,42 +279,56 @@ const GroupDetailsPage = () => {
             {/* תמונת הקבוצה */}
             <div className="flex-shrink-0">
               <img
-                src={group.image}
-                alt={group.name}
+                src={group.image || group.group_image || '/api/placeholder/128/96'}
+                alt={group.group_name || group.name || 'Group Image'}
                 className="w-32 h-24 object-cover rounded-xl shadow-md"
+                onError={(e) => {
+                  console.log('🖼️ Image failed to load, using fallback');
+                  e.target.src = '/api/placeholder/128/96';
+                }}
               />
             </div>
             
             {/* פרטי הקבוצה */}
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">{group.name}</h1>
-              <p className="text-gray-600 text-lg mb-4">{group.description}</p>
+              <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                {group.group_name || group.name || 'Unnamed Group'}
+              </h1>
+              
+              {group.description && (
+                <p className="text-gray-600 text-lg mb-4">{group.description}</p>
+              )}
               
               <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                 <div className="flex items-center">
-                  <Users className="w-4 h-4 ml-2" />
-                  <span>{members.length} חברים</span>
+                  <Users className="w-4 h-4 mr-2" />
+                  <span>Members: {members.length}</span>
                 </div>
-                <div className="flex items-center">
-                  <Building className="w-4 h-4 ml-2" />
-                  <span>{group.category}</span>
-                </div>
+                
+                {group.category && (
+                  <div className="flex items-center">
+                    <Building className="w-4 h-4 ml-2" />
+                    <span>{group.category}</span>
+                  </div>
+                )}
               </div>
               
               {/* תגיות */}
-              <div className="mt-4">
-                <div className="flex items-center mb-2">
-                  <Tag className="w-4 h-4 ml-2" />
-                  <span className="text-sm font-medium text-gray-700">תגיות:</span>
+              {group.tags && group.tags.length > 0 && (
+                <div className="mt-4">
+                  <div className="flex items-center mb-2">
+                    <Tag className="w-4 h-4 ml-2" />
+                    <span className="text-sm font-medium text-gray-700">Tags:</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {group.tags.map((tag, index) => (
+                      <span key={index} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {group.tags && group.tags.map((tag, index) => (
-                    <span key={index} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -290,46 +337,42 @@ const GroupDetailsPage = () => {
         <div className="bg-white rounded-3xl shadow-xl p-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-800">
-              חברי הקבוצה ({members.length})
+              Community Members ({members.length})
             </h2>
             
             <div className="flex items-center gap-4">
               {membersLoading && (
                 <div className="flex items-center">
                   <Loader2 className="w-5 h-5 animate-spin text-blue-500 ml-2" />
-                  <span className="text-gray-600">טוען חברים...</span>
+                  <span className="text-gray-600">Loading members...</span>
                 </div>
               )}
               
-              {/* כפתורי ניהול משתמשים */}
               {!deleteMode ? (
                 <>
-                  {/* כפתור הוספת משתמשים */}
                   <button
                     onClick={() => setShowAddUsersModal(true)}
-                    className="flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-blue-600 text-white rounded-lg hover:from-green-600 hover:to-blue-700 transition-all"
+                    className="flex items-center justify-center p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-all"
                     disabled={loading}
+                    title="Add Users"
                   >
-                    <UserPlus className="w-5 h-5 ml-2" />
-                    הוסף משתמשים
+                    <UserPlus className="w-5 h-5" />
                   </button>
-                  
-                  {/* כפתור מחיקת משתמשים */}
+
                   <button
                     onClick={enterDeleteMode}
-                    className="flex items-center px-4 py-2 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-lg hover:from-red-600 hover:to-pink-700 transition-all"
+                    className="flex items-center justify-center p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-all"
                     disabled={loading || members.length === 0}
+                    title="Remove Users"
                   >
-                    <UserMinus className="w-5 h-5 ml-2" />
-                    הסר משתמשים
+                    <UserMinus className="w-5 h-5" />
                   </button>
                 </>
               ) : (
                 <>
-                  {/* כפתורים במצב מחיקה */}
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-600">
-                      נבחרו {selectedForDeletion.length} משתמשים
+                      Selected {selectedForDeletion.length} users
                     </span>
                     
                     <button
@@ -337,7 +380,7 @@ const GroupDetailsPage = () => {
                       className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 transition-colors"
                       disabled={deleting}
                     >
-                      בחר הכל
+                      Select All
                     </button>
                     
                     <button
@@ -345,7 +388,7 @@ const GroupDetailsPage = () => {
                       className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 transition-colors"
                       disabled={deleting || selectedForDeletion.length === 0}
                     >
-                      בטל בחירה
+                      Clear Selection
                     </button>
                   </div>
                   
@@ -357,12 +400,12 @@ const GroupDetailsPage = () => {
                     {deleting ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin ml-2" />
-                        מוחק...
+                        Deleting...
                       </>
                     ) : (
                       <>
                         <Trash2 className="w-5 h-5 ml-2" />
-                        מחק ({selectedForDeletion.length})
+                        Delete ({selectedForDeletion.length})
                       </>
                     )}
                   </button>
@@ -373,23 +416,21 @@ const GroupDetailsPage = () => {
                     disabled={deleting}
                   >
                     <X className="w-5 h-5 ml-2" />
-                    בטל
+                    Cancel
                   </button>
                 </>
               )}
             </div>
           </div>
 
-          {/* הודעה במצב מחיקה */}
           {deleteMode && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-red-700 text-sm">
-                <strong>מצב מחיקה:</strong> לחץ על משתמשים כדי לבחור אותם למחיקה מהקבוצה
+                <strong>Delete Mode:</strong> Click on users to select them for removal from the group
               </p>
             </div>
           )}
 
-          {/* רשת החברים */}
           {members.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {members.map(member => {
@@ -402,7 +443,6 @@ const GroupDetailsPage = () => {
                       isSelectedForDeletion ? 'ring-4 ring-red-500 ring-opacity-50' : ''
                     }`}
                   >
-                    {/* אינדיקטור בחירה למחיקה */}
                     {deleteMode && (
                       <div className={`absolute top-2 right-2 z-10 w-6 h-6 rounded-full border-2 flex items-center justify-center ${
                         isSelectedForDeletion 
@@ -417,7 +457,6 @@ const GroupDetailsPage = () => {
                       </div>
                     )}
                     
-                    {/* כרטיס המשתמש */}
                     <div className={`${deleteMode ? 'pointer-events-none' : ''} ${
                       isSelectedForDeletion ? 'opacity-75' : ''
                     }`}>
@@ -430,24 +469,23 @@ const GroupDetailsPage = () => {
           ) : (
             <div className="text-center py-12">
               <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-500 text-lg">אין חברים בקבוצה זו כרגע</p>
+              <p className="text-gray-500 text-lg">No members in this group yet</p>
               <button
                 onClick={() => setShowAddUsersModal(true)}
                 className="mt-4 flex items-center mx-auto px-4 py-2 bg-gradient-to-r from-green-500 to-blue-600 text-white rounded-lg hover:from-green-600 hover:to-blue-700 transition-all"
               >
                 <UserPlus className="w-5 h-5 ml-2" />
-                הוסף משתמשים ראשונים
+                Add First Members
               </button>
             </div>
           )}
         </div>
 
-        {/* מודל הוספת משתמשים */}
         <AddUsersModal
           isOpen={showAddUsersModal}
           onClose={() => setShowAddUsersModal(false)}
           groupId={groupId}
-          groupName={group?.name}
+          groupName={group?.group_name || group?.name}
           addUsersToGroup={addUsersToGroup}
           onUsersAdded={handleUsersAdded}
         />

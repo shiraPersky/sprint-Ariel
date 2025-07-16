@@ -3,7 +3,7 @@ import React from 'react';
 import UserCard from './UserCard';
 import GroupCard from './GroupCard';
 
-const SearchResults = ({ searchMode, users, groups }) => {
+const SearchResults = ({ searchMode, users, groups, onGroupUpdated ,onGroupDeleted}) => {
   // הגנה על מערכים לא חוקיים
   const safeUsers = Array.isArray(users) ? users : [];
   const safeGroups = Array.isArray(groups) ? groups : [];
@@ -36,6 +36,8 @@ const SearchResults = ({ searchMode, users, groups }) => {
               <GroupCard 
                 key={group.id_group || group.id} 
                 group={group} 
+                onGroupUpdated={onGroupUpdated} // העברת פונקציית עדכון
+                onGroupDeleted={onGroupDeleted} // העברת פונקציית מחיקה
               />
             ))}
           </div>
