@@ -32,7 +32,15 @@ async function update(id, data) {
   });
 }
 
-async function remove(id) {
+async function remove(id_group) {
+  const id = Number(id_group);
+
+  
+  await prisma.groupMember.deleteMany({
+    where: { id_group: id },
+  });
+
+  
   return await prisma.group.delete({
     where: { id_group: id },
   });

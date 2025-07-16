@@ -67,3 +67,17 @@ export async function createGroup({ name }) {
 
   return await groupData.create({ name });
 }
+
+export async function deleteGroup(id_group) {
+  if (!id_group || isNaN(Number(id_group))) {
+    throw new Error('A valid group ID is required');
+  }
+
+  
+  const existing = await groupData.getById(Number(id_group));
+  if (!existing) {
+    throw new Error('Group not found');
+  }
+
+  return await groupData.remove(Number(id_group));
+}
