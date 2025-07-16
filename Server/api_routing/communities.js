@@ -7,7 +7,7 @@ import {
 
 import { getMembersNotInGroup } from '../services/groupMember.service.js';
 import { getMembersByGroupId } from '../services/groupService.js';
-
+import { createGroup  } from '../services/groupService.js';
 
 
 const router = express.Router();
@@ -128,6 +128,29 @@ router.delete("/remove-member", async (req, res, next) => {
     res.json({
       success: true,
       message: "Member removed from group successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Add new group
+router.post('/add-communities', async (req, res, next) => {
+  try {
+    const { name } = req.body;
+
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        error: 'Group name is required'
+      });
+    }
+
+    const newGroup = await createGroup({ name });
+
+    res.status(201).json({
+      success: true,
+      data: newGroup
     });
   } catch (error) {
     next(error);
