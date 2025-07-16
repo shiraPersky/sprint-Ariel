@@ -15,7 +15,6 @@ export async function addMemberToGroup(id_group, id_community_member) {
     throw new Error('Group ID and Member ID are required');
   }
 
-  // Optional: check if already exists
   const existing = await groupMemberData.getByIds({ id_group });
 
   const isAlreadyInGroup = existing.some(
@@ -27,6 +26,50 @@ export async function addMemberToGroup(id_group, id_community_member) {
   }
 
 const newGroupMember = await groupMemberData.create({ id_group, id_community_member });  return newGroupMember;
+}
+
+
+export async function addMultipleMembersToGroup(id_group, id_community_members) {
+  const results = [];
+
+  // Get current group members to avoid duplicates
+  const existing = await groupMemberData.getByIds({ id_group });
+
+  const existingMemberIds = new Set(
+    existing.map(entry => entry.id_community_member)
+  );
+
+  for (const memberId of id_community_members) {
+    if (existingMemberIds.has(memberId)) {
+      results.push({
+        id_community_member: memberId,
+        status: "skipped",
+        reason: "Already in group"
+      });
+      continue;
+    }
+
+    try {
+      const added = await groupMemberData.create({
+        id_group,
+        id_community_member: memberId
+      });
+
+      results.push({
+        id_community_member: memberId,
+        status: "added",
+        data: added
+      });
+    } catch (error) {
+      results.push({
+        id_community_member: memberId,
+        status: "failed",
+        reason: error.message
+      });
+    }
+  }
+
+  return results;
 }
 
 
