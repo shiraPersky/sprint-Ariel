@@ -4,6 +4,7 @@ import {
   addMemberToGroup,
   addMultipleMembersToGroup,
   removeMemberFromGroup,
+  removeMultipleMembersFromGroup,
 } from "../services/groupMember.service.js";
 
 import { getMembersNotInGroup } from '../services/groupMember.service.js';
@@ -153,6 +154,38 @@ router.delete("/remove-member", async (req, res, next) => {
     res.json({
       success: true,
       message: "Member removed from group successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+// Delete multiple members from a group
+router.delete("/remove-members", async (req, res, next) => {
+  try {
+    const { id_group, id_community_members } = req.body;
+
+    if (
+      isNaN(parseInt(id_group)) ||
+      !Array.isArray(id_community_members) ||
+      id_community_members.length === 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: "Group ID must be valid and a non-empty array of member IDs is required",
+      });
+    }
+
+    const result = await removeMultipleMembersFromGroup(
+      parseInt(id_group),
+      id_community_members.map(Number)
+    );
+
+    res.json({
+      success: true,
+      message: "Members removed from group successfully",
+      data: result,
     });
   } catch (error) {
     next(error);
