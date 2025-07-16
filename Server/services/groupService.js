@@ -3,6 +3,19 @@ import groupData from '../dataLayer/group.data.js';
 import groupMemberData from '../dataLayer/groupMember.data.js';
 
 
+export async function updateGroupName(id_group, newName) {
+  if (!id_group || !newName || typeof newName !== 'string') {
+    throw new Error('Valid group ID and new group name must be provided');
+  }
+
+  const updatedGroup = await groupData.update(id_group, {
+    group_name: newName,
+  });
+
+  return updatedGroup;
+}
+
+
 // Service function to get all groups
 export async function getAllGroups() {
   const groups = await groupData.getAll();
@@ -10,8 +23,6 @@ export async function getAllGroups() {
   // You can add more processing logic here if needed
   return groups;
 }
-
-
 
 // Service function to get members of specific group(by group ID)
 export async function getMembersByGroupId(id_group) {
