@@ -1,7 +1,7 @@
 // GroupDetailsPage.js - דף פרטי קבוצה עם רשימת חברים - עם קריאת API אמיתית
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate,useLocation } from 'react-router-dom';
-import { ArrowRight, Users, Building, Tag, Loader2, UserPlus, UserMinus, Trash2, X } from 'lucide-react';
+import {  Users, Building, Tag, Loader2, UserPlus, UserMinus, Trash2, X, ArrowLeft } from 'lucide-react';
 import useServerRequestsMock from '../Searchpage/testcomp'; // או useServerRequests
 import UserCard from '../Searchpage/UserCard';
 import AddUsersModal from './AddUsersModal';
@@ -233,10 +233,10 @@ const GroupDetailsPage = () => {
         {/* כפתור חזרה */}
         <button
           onClick={() => navigate('/UserSearch')}
-          className="flex items-center mb-6 px-4 py-2 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+          className="flex items-center mb-6 px-4 py-2  rounded-lg shadow hover:bg-gray-200 transition-shadow"
         >
-          <ArrowRight className="w-5 h-5 ml-2" />
-          חזרה לחיפוש
+          <ArrowLeft className="w-5 h-5 ml-2" />
+         
         </button>
 
         {/* כותרת הקבוצה */}
@@ -259,13 +259,13 @@ const GroupDetailsPage = () => {
               
               <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                 <div className="flex items-center">
-                  <Users className="w-4 h-4 ml-2" />
-                  <span>{members.length} חברים</span>
+                   <Users className="w-4 h-4 mr-2" />
+                  <span> Friends: {members.length}  </span>
                 </div>
-                <div className="flex items-center">
+                {/* <div className="flex items-center">
                   <Building className="w-4 h-4 ml-2" />
                   <span>{group.category}</span>
-                </div>
+                </div> */}
               </div>
               
               {/* תגיות */}
@@ -290,7 +290,7 @@ const GroupDetailsPage = () => {
         <div className="bg-white rounded-3xl shadow-xl p-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-800">
-              חברי הקבוצה ({members.length})
+             Community members ({members.length})
             </h2>
             
             <div className="flex items-center gap-4">
@@ -306,23 +306,25 @@ const GroupDetailsPage = () => {
                 <>
                   {/* כפתור הוספת משתמשים */}
                   <button
-                    onClick={() => setShowAddUsersModal(true)}
-                    className="flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-blue-600 text-white rounded-lg hover:from-green-600 hover:to-blue-700 transition-all"
-                    disabled={loading}
-                  >
-                    <UserPlus className="w-5 h-5 ml-2" />
-                    הוסף משתמשים
-                  </button>
+  onClick={() => setShowAddUsersModal(true)}
+  className="flex items-center justify-center p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-all"
+  disabled={loading}
+>
+  <UserPlus className="w-5 h-5" />
+</button>
+
+
                   
                   {/* כפתור מחיקת משתמשים */}
                   <button
-                    onClick={enterDeleteMode}
-                    className="flex items-center px-4 py-2 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-lg hover:from-red-600 hover:to-pink-700 transition-all"
-                    disabled={loading || members.length === 0}
-                  >
-                    <UserMinus className="w-5 h-5 ml-2" />
-                    הסר משתמשים
-                  </button>
+  onClick={enterDeleteMode}
+  className="flex items-center justify-center p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-all"
+  disabled={loading || members.length === 0}
+>
+  <UserMinus className="w-5 h-5" />
+</button>
+
+
                 </>
               ) : (
                 <>

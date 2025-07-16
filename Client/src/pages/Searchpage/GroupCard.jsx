@@ -61,31 +61,32 @@ const GroupCard = ({ group, onGroupUpdated, onGroupDeleted }) => {
         className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6 cursor-pointer border border-gray-200 relative"
         onClick={handleClick}
       >
-        <div className="text-center">
-          <h3 className="font-bold text-lg text-gray-800 mb-4">
+        {/* כפתורי עריכה ומחיקה - ברמה הגבוהה ביותר */}
+        <div className="absolute top-3 left-3 flex gap-2 z-10">
+          {/* כפתור עריכה */}
+          <button
+            onClick={handleEditClick}
+            className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-all hover:bg-blue-50 border border-gray-200"
+            title="עדכן שם קבוצה"
+          >
+            <Edit2 className="w-4 h-4 text-blue-600" />
+          </button>
+
+          {/* כפתור מחיקה */}
+          <button
+            onClick={handleDeleteClick}
+            className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-all hover:bg-red-50 border border-gray-200"
+            title="מחק קבוצה"
+          >
+            <Trash2 className="w-4 h-4 text-red-600" />
+          </button>
+        </div>
+
+        {/* תוכן הכרטיס עם מרווח מלמעלה */}
+        <div className="text-center pt-8">
+          <h3 className="font-bold text-lg text-gray-800 mb-4 break-words">
             {group.group_name}
           </h3>
-
-          {/* כפתורי עריכה ומחיקה */}
-          <div className="absolute top-3 left-3 flex gap-2">
-            {/* כפתור עריכה */}
-            <button
-              onClick={handleEditClick}
-              className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-all hover:bg-blue-50"
-              title="עדכן שם קבוצה"
-            >
-              <Edit2 className="w-4 h-4 text-blue-600" />
-            </button>
-
-            {/* כפתור מחיקה */}
-            <button
-              onClick={handleDeleteClick}
-              className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-all hover:bg-red-50"
-              title="מחק קבוצה"
-            >
-              <Trash2 className="w-4 h-4 text-red-600" />
-            </button>
-          </div>
 
           {/* <button 
             className="w-full px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all font-medium"

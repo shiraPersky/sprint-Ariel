@@ -1,9 +1,8 @@
 import { ApifyClient } from "apify-client";
 import communityMemberData from "../dataLayer/communityMember.data.js";
 import groupData from "../dataLayer/group.data.js";
-
-
-const { getById, getAll, create , update} = communityMemberData;
+import axios from "axios";
+const { getById, getAll, create, update } = communityMemberData;
 
 // Initialize the ApifyClient with API token
 const client = new ApifyClient({
@@ -28,29 +27,24 @@ export async function updateGroupName(id_group, new_name) {
 }
 
 export async function getMemberById(id) {
-  let parsed=parseAndValidateId(id)
-  console.log("parseInt  ID:", parsed);
+  let parsed = parseAndValidateId(id);
+  console.log("parseInt ID:", parsed);
   const member = await getById(parsed);
   console.log("Found member:", member);
   return member;
 }
 
-
-
 function parseAndValidateId(id) {
-  //if (typeof id !== "string") throw new Error("ID must be a string");
   const parsed = parseInt(id.trim(), 10);
   if (isNaN(parsed) || parsed < 1) throw new Error("Invalid ID");
   return parsed;
 }
 
 export async function getMemberForAdmin(id) {
- 
   return await getMemberById(id); // מחזיר הכל
 }
 
 export async function getMemberForUser(id) {
-  
   const full = await getMemberById(id);
 
   const {
@@ -63,13 +57,11 @@ export async function getMemberForUser(id) {
   return sanitized;
 }
 
-
 export async function getAllMembers() {
   try {
     const members = await getAll();
     return members;
   } catch (error) {
-    // אפשר להוסיף לוג שגיאות פה
     throw new Error("Failed to retrieve members");
   }
 }
@@ -83,20 +75,16 @@ async function getLinkedInProfileData(linkedin_url) {
   try {
     console.log("🔍 Fetching LinkedIn profile data for:", linkedin_url);
 
-    // הכנת הנתונים עבור Apify Actor
     const input = {
       profileUrls: [linkedin_url],
-      includeUnlistedData: true, // כלול נתונים נסתרים
+      includeUnlistedData: true,
       maxRequestRetries: 3,
       maxProfilesCrawled: 1,
     };
 
-    // הרצת ה-Actor והמתנה לסיום
     const run = await client.actor("2SyF0bVxmgGr8IVCZ").call(input);
-
     console.log("✅ Apify run completed:", run.id);
 
-    // קבלת התוצאות מהדאטאסט
     const { items } = await client.dataset(run.defaultDatasetId).listItems();
 
     if (!items || items.length === 0) {
@@ -105,7 +93,7 @@ async function getLinkedInProfileData(linkedin_url) {
 
     const profileData = items[0];
     console.log("📊 Profile data retrieved:", {
-      name: profileData.name,
+      name: profileData.fullName,
       headline: profileData.headline,
       location: profileData.location,
     });
@@ -118,32 +106,250 @@ async function getLinkedInProfileData(linkedin_url) {
 }
 
 /**
+ * מעבד skills מ-LinkedIn
+ * @param {Array} skills - רשימת skills
+ * @returns {Array} skills מעובדים
+ */
+function processSkills(skills) {
+  if (!skills || !Array.isArray(skills)) return [];
+  
+  return skills.map(skill => {
+    if (typeof skill === 'string') {
+      return { description: skill };
+    }
+    
+    // אם זה אובייקט מורכב עם title
+    if (skill && typeof skill === 'object' && skill.title) {
+      return { description: skill.title };
+    }
+    
+    // אם זה אובייקט עם name או description
+    if (skill && typeof skill === 'object') {
+      return { description: skill.name || skill.description || 'Unknown Skill' };
+    }
+    
+    return { description: 'Unknown Skill' };
+  });
+}
+
+/**
+ * מעבד jobs מ-LinkedIn experiences
+ * @param {Array} experiences - רשימת משרות
+ * @returns {Array} jobs מעובדים
+ */
+function processJobs(experiences) {
+  if (!experiences || !Array.isArray(experiences)) return [];
+  
+  const jobs = [];
+  console.log("Processing jobs from experiences:", experiences);
+  experiences.forEach(exp => {
+    // חילוץ שם החברה
+    console.log("Processing experience:", exp);
+    let companyName = "Unknown Company";
+    if (exp.subtitle && typeof exp.subtitle === 'string') {
+      companyName = exp.subtitle +" " + exp.title;
+    } else if (exp.companyName) {
+      companyName = exp.subtitle +" " + exp.title;
+    }
+    
+    // אם יש subComponents (תפקידים מרובים באותה חברה)
+    if (exp.subComponents && Array.isArray(exp.subComponents)) {
+      exp.subComponents.forEach(subJob => {
+        console.log("Processing subJob:", subJob);
+        const startDate = parseLinkedInDate(subJob.caption) || new Date();
+        const endDate = parseLinkedInEndDate(subJob.caption);
+        const description = extractJobDescription(subJob);
+        
+        jobs.push({
+          company_name: companyName,
+          start_date: startDate,
+          end_date: endDate,
+          description: description
+        });
+      });
+    } else {
+      // תפקיד יחיד
+      const startDate = parseLinkedInDate(exp.caption || exp.subtitle) || new Date();
+      const endDate = parseLinkedInEndDate(exp.caption || exp.subtitle);
+      const description = extractJobDescription(exp.title);
+      const companyName = extractJobDescription(exp.subtitle) + description || "Unknown Company";
+      jobs.push({
+        company_name: companyName,
+        start_date: startDate,
+        end_date: endDate,
+        description: description
+      });
+    }
+  });
+  
+  return jobs;
+}
+
+/**
+ * מחלץ תיאור משרה מהמבנה המורכב
+ * @param {Object} jobData - נתוני המשרה
+ * @returns {string|null} תיאור המשרה
+ */
+function extractJobDescription(jobData) {
+  // אם יש title פשוט
+  if (jobData.title && typeof jobData.title === 'string') {
+    return jobData.title;
+  }
+  
+  // אם יש subtitle
+  if (jobData.subtitle && typeof jobData.subtitle === 'string') {
+    return jobData.subtitle;
+  }
+  
+  // אם יש description כarray של אובייקטים
+  if (jobData.description && Array.isArray(jobData.description)) {
+    const textComponents = jobData.description
+      .filter(item => item && item.type === 'textComponent' && item.text)
+      .map(item => item.text);
+    
+    if (textComponents.length > 0) {
+      return textComponents.join(' ').trim();
+    }
+  }
+  
+  // אם יש description כstring
+  if (typeof jobData.description === 'string') {
+    return jobData.description;
+  }
+  
+  // אם יש subComponents עם description
+  if (jobData.subComponents && Array.isArray(jobData.subComponents)) {
+    for (const subComp of jobData.subComponents) {
+      if (subComp.description && Array.isArray(subComp.description)) {
+        const textComponents = subComp.description
+          .filter(item => item && item.type === 'textComponent' && item.text)
+          .map(item => item.text);
+        
+        if (textComponents.length > 0) {
+          return textComponents.join(' ').trim();
+        }
+      }
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * מנתח תאריכים מ-LinkedIn בפורמט caption
+ * @param {string} caption - טקסט עם תאריך (כמו "Feb 2025 - Present · 6 mos")
+ * @returns {Date|null} תאריך התחלה
+ */
+function parseLinkedInDate(caption) {
+  if (!caption || typeof caption !== 'string') return null;
+  
+  // חיפוש פטרן של תאריך התחלה
+  const startDateMatch = caption.match(/([A-Za-z]{3})\s+(\d{4})/);
+  if (startDateMatch) {
+    const [, month, year] = startDateMatch;
+    return new Date(`${month} 1, ${year}`);
+  }
+  
+  // אם לא נמצא, ננסה פורמט אחר
+  const yearMatch = caption.match(/(\d{4})/);
+  if (yearMatch) {
+    return new Date(`Jan 1, ${yearMatch[1]}`);
+  }
+  
+  return null;
+}
+
+/**
+ * מנתח תאריך סיום מ-LinkedIn caption
+ * @param {string} caption - טקסט עם תאריך
+ * @returns {Date|null} תאריך סיום או null אם עדיין עובד
+ */
+function parseLinkedInEndDate(caption) {
+  if (!caption || typeof caption !== 'string') return null;
+  
+  // אם יש "Present" זה אומר שעדיין עובד
+  if (caption.includes('Present')) return null;
+  
+  // חיפוש פטרן של תאריך סיום
+  const endDateMatch = caption.match(/([A-Za-z]{3})\s+(\d{4})\s*-\s*([A-Za-z]{3})\s+(\d{4})/);
+  if (endDateMatch) {
+    const [, , , endMonth, endYear] = endDateMatch;
+    return new Date(`${endMonth} 1, ${endYear}`);
+  }
+  
+  return null;
+}
+
+/**
+ * מנתח תאריכים מ-LinkedIn (פונקציה מקורית לתאריכים פשוטים)
+ * @param {string} dateString - תאריך בפורמט string
+ * @returns {Date|null} תאריך מפורסר
+ */
+function parseDate(dateString) {
+  if (!dateString) return null;
+  
+  const date = new Date(dateString);
+  return isNaN(date.getTime()) ? null : date;
+}
+
+/**
  * מעבד את הנתונים מ-LinkedIn לפורמט של המערכת
  * @param {Object} linkedinData - נתונים גולמיים מ-LinkedIn
  * @returns {Object} נתונים מעובדים
  */
-function processLinkedInData(linkedinData) {
-  return {
-    english_name: linkedinData.name || "Unknown User",
+async  function processLinkedInData(linkedinData) {
+  const profilePictureBase64 = await encodeImageToBase64(
+    linkedinData.profilePic || linkedinData.profilePicture || null
+  );
+  console.log("📷 Profile picture encoded to Base64:", linkedinData.fullName);
+  console.log(linkedinData)
+  const baseData = {
+    english_name: linkedinData.fullName || "Unknown User",
     title: linkedinData.headline || "No Title",
     email: linkedinData.email || null,
     phone: linkedinData.phone || null,
+    profile_picture_url:  profilePictureBase64 ,
     about: linkedinData.summary || linkedinData.about || null,
-    city: linkedinData.location || null,
-    linkedin_url: linkedinData.url || linkedinData.profileUrl,
+    city: linkedinData.addressWithCountry || linkedinData.addressCountryOnly || linkedinData.addressWithoutCountry || null,
+    linkedin_url: linkedinData.linkedinUrl || linkedinData.profileUrl,
     additional_info: JSON.stringify({
       company: linkedinData.company,
-      experience: linkedinData.experience,
       education: linkedinData.education,
-      skills: linkedinData.skills,
       connections: linkedinData.connectionsCount,
     }),
-    years_of_experience: calculateExperience(linkedinData.experience),
+    years_of_experience: calculateExperience(linkedinData.experiences || linkedinData.experience),
     wants_updates: false,
     active: true,
     admin_notes: `Created from LinkedIn scraping at ${new Date().toISOString()}`,
   };
+
+  // הוספת skills אם קיימים
+  if (linkedinData.skills && linkedinData.skills.length > 0) {
+    baseData.skills = {
+      create: processSkills(linkedinData.skills)
+    };
+  }
+
+  // הוספת jobs אם קיימים
+  const experiences = linkedinData.experiences || linkedinData.experience;
+  console
+  if (experiences && experiences.length > 0) {
+    baseData.jobs = {
+      create: processJobs(experiences)
+    };
+  }
+
+  return baseData;
 }
+
+async function encodeImageToBase64(imageUrl) {
+  if (!imageUrl) return null;
+  const response = await fetch(imageUrl);
+  const buffer = await response.arrayBuffer();
+  const base64 = Buffer.from(buffer).toString('base64');
+  return `data:image/jpeg;base64,${base64}`;
+}
+
 
 /**
  * מחשב שנות ניסיון על סמך רשימת המשרות
@@ -152,23 +358,89 @@ function processLinkedInData(linkedinData) {
  */
 function calculateExperience(experience) {
   if (!experience || !Array.isArray(experience)) {
-    return 0;
+    return 0.0;
   }
-
-  let totalYears = 0;
-  const currentYear = new Date().getFullYear();
+  
+  console.log("Calculating experience from:", experience);
+  let totalYears = 0.0;
 
   experience.forEach((job) => {
-    if (job.startDate && job.endDate) {
-      const startYear = new Date(job.startDate).getFullYear();
-      const endYear = job.endDate.toLowerCase().includes("present")
-        ? currentYear
-        : new Date(job.endDate).getFullYear();
-      totalYears += Math.max(0, endYear - startYear);
+    // אם יש subtitle עם פורמט ישן
+    if (job.subtitle) {
+      const yearsMatch = job.subtitle.match(/(\d+)\s*yrs?/);
+      const monthsMatch = job.subtitle.match(/(\d+)\s*mos?/);
+      
+      let years = 0;
+      let months = 0;
+      
+      if (yearsMatch) {
+        years = parseInt(yearsMatch[1], 10);
+      }
+      
+      if (monthsMatch) {
+        months = parseInt(monthsMatch[1], 10);
+      }
+      
+      totalYears += years + (months / 12);
+    }
+    
+    // אם יש subComponents - מחשב לכל תפקיד
+    if (job.subComponents && Array.isArray(job.subComponents)) {
+      job.subComponents.forEach(subJob => {
+        if (subJob.caption) {
+          const duration = calculateJobDuration(subJob.caption);
+          totalYears += duration;
+        }
+      });
+    } else if (job.caption) {
+      // תפקיד יחיד
+      const duration = calculateJobDuration(job.caption);
+      totalYears += duration;
     }
   });
 
-  return Math.min(totalYears, 50); // מקסימום 50 שנות ניסיון
+  return parseFloat(Math.min(totalYears, 50.0).toFixed(1)); // מקסימום 50 שנות ניסיון
+}
+
+/**
+ * מחשב משך זמן של תפקיד על סמך caption
+ * @param {string} caption - טקסט כמו "Feb 2024 - Feb 2025 · 1 yr 1 mo"
+ * @returns {number} שנות ניסיון עבור התפקיד הזה
+ */
+function calculateJobDuration(caption) {
+  if (!caption) return 0;
+  
+  // חיפוש פטרן של משך זמן בסגנון "1 yr 6 mos"
+  const durationMatch = caption.match(/(\d+)\s*yrs?\s*(?:(\d+)\s*mos?)?|(\d+)\s*mos?/);
+  
+  if (durationMatch) {
+    let years = 0;
+    let months = 0;
+    
+    if (durationMatch[1]) {
+      years = parseInt(durationMatch[1], 10);
+    }
+    if (durationMatch[2]) {
+      months = parseInt(durationMatch[2], 10);
+    }
+    if (durationMatch[3] && !durationMatch[1]) {
+      months = parseInt(durationMatch[3], 10);
+    }
+    
+    return years + (months / 12);
+  }
+  
+  // אם לא נמצא פטרן, ננסה לחשב מהתאריכים
+  const startDate = parseLinkedInDate(caption);
+  const endDate = parseLinkedInEndDate(caption) || new Date(); // אם אין תאריך סיום, זה עדיין עובד
+  
+  if (startDate) {
+    const diffMs = endDate - startDate;
+    const diffYears = diffMs / (1000 * 60 * 60 * 24 * 365.25);
+    return Math.max(0, diffYears);
+  }
+  
+  return 0;
 }
 
 /**
@@ -206,9 +478,10 @@ export async function createMemberWithLinkedIn(linkedin_url) {
 
     // שלב 1: קבלת נתונים מ-LinkedIn
     const linkedinData = await getLinkedInProfileData(cleanUrl);
-
+    console.log("📥 LinkedIn data retrieved:", linkedinData);
+    
     // שלב 2: עיבוד הנתונים
-    const processedData = processLinkedInData(linkedinData);
+    const processedData = await processLinkedInData(linkedinData);
 
     console.log("💾 Creating member with processed data:", {
       name: processedData.english_name,
@@ -232,37 +505,16 @@ export async function createMemberWithLinkedIn(linkedin_url) {
     };
   } catch (error) {
     console.error("❌ Error in createMemberWithLinkedIn:", error);
-
-    // אם יש שגיאה בשליפת נתוני LinkedIn, נזרוק את השגיאה
     throw error;
   }
 }
 
 /**
- * דוגמה לשימוש
+ * מכין נתונים לפריזמה עם relations
+ * @param {Object} data - נתונים גולמיים
+ * @param {boolean} isUpdate - האם זה עדכון
+ * @returns {Object} נתונים מוכנים לפריזמה
  */
-// export async function testLinkedInScraping() {
-//   try {
-//     const testUrls = [
-//       "https://www.linkedin.com/in/williamhgates",
-//       "https://www.linkedin.com/in/jeannie-wyrick-b4760710a",
-//     ];
-
-//     for (const url of testUrls) {
-//       console.log(`\n🧪 Testing: ${url}`);
-//       const result = await createMemberWithLinkedIn(url);
-//       console.log("Result:", result);
-//     }
-//   } catch (error) {
-//     console.error("Test failed:", error);
-//   }
-// }
-
-// if (import.meta.url === `file://${process.argv[1]}`) {
-//   testLinkedInScraping();
-// }
-
-
 function prepareDataForPrisma(data, isUpdate = false) {
   const {
     skills,
@@ -277,10 +529,20 @@ function prepareDataForPrisma(data, isUpdate = false) {
     prismaData.skills = isUpdate
       ? {
           deleteMany: {},
-          create: skills.map(description => ({ description })),
+          create: skills.map(skill => {
+            if (typeof skill === 'object' && skill.description) {
+              return { description: skill.description };
+            }
+            return { description: typeof skill === 'string' ? skill : skill.title || skill.name || 'Unknown Skill' };
+          }),
         }
       : {
-          create: skills.map(description => ({ description })),
+          create: skills.map(skill => {
+            if (typeof skill === 'object' && skill.description) {
+              return { description: skill.description };
+            }
+            return { description: typeof skill === 'string' ? skill : skill.title || skill.name || 'Unknown Skill' };
+          }),
         };
   }
 
@@ -306,16 +568,18 @@ function prepareDataForPrisma(data, isUpdate = false) {
       ? {
           deleteMany: {},
           create: jobs.map(job => ({
-            ...job,
-            start_date: job.start_date ? new Date(job.start_date) : undefined,
-            end_date: job.end_date ? new Date(job.end_date) : undefined,
+            company_name: job.company_name || "Unknown Company",
+            start_date: job.start_date ? new Date(job.start_date) : new Date(),
+            end_date: job.end_date ? new Date(job.end_date) : null,
+            description: extractJobDescription(job) || job.description || null
           })),
         }
       : {
           create: jobs.map(job => ({
-            ...job,
-            start_date: job.start_date ? new Date(job.start_date) : undefined,
-            end_date: job.end_date ? new Date(job.end_date) : undefined,
+            company_name: job.company_name || "Unknown Company",
+            start_date: job.start_date ? new Date(job.start_date) : new Date(),
+            end_date: job.end_date ? new Date(job.end_date) : null,
+            description: extractJobDescription(job) || job.description || null
           })),
         };
   }
@@ -323,7 +587,12 @@ function prepareDataForPrisma(data, isUpdate = false) {
   return prismaData;
 }
 
-
+/**
+ * יוצר או מעדכן חבר קהילה
+ * @param {string|number} id - מזהה החבר
+ * @param {Object} data - נתוני החבר
+ * @returns {Promise<Object>} החבר שנוצר או עודכן
+ */
 export async function createOrUpdateMember(id, data) {
   let parsedId = null;
 
