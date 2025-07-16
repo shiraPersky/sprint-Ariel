@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import AddParticipant from './AddParticipant';
 
 
 export default function EventList() {
@@ -7,6 +8,8 @@ export default function EventList() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [expandedEventId, setExpandedEventId] = useState(null);
+
+    const [eventParticipants, setEventParticipants] = useState({});//for load participiant after add member
 
     const navigate = useNavigate();
 
@@ -32,8 +35,25 @@ export default function EventList() {
     }, []);
 
     const toggleParticipants = (eventId) => {
-        setExpandedEventId(expandedEventId === eventId ? null : eventId);
+        const isOpen = expandedEventId === eventId;
+        setExpandedEventId(isOpen ? null : eventId);
+        if (!isOpen) fetchParticipantsForEvent(eventId);
     };
+
+    const fetchParticipantsForEvent = async (eventId) => {
+        try {
+            const res = await fetch(`http://localhost:5000/events/${eventId}/participants`);
+            if (!res.ok) throw new Error("Failed to fetch participants");
+            const data = await res.json();
+            setEventParticipants((prev) => ({
+                ...prev,
+                [eventId]: data.data
+            }));
+        } catch (err) {
+            console.error("Failed to refresh participants", err);
+        }
+    };
+
 
     const formatDate = (datetime) =>
         new Date(datetime).toLocaleDateString("en-GB");
@@ -86,9 +106,9 @@ export default function EventList() {
                             {expandedEventId === event.id_event && (
                                 <div className="mt-3 text-gray-700">
                                     <h3 className="font-semibold mb-1">👥 Participants:</h3>
-                                    <ul className="list-disc list-inside">
-                                        {event.participants?.length > 0 ? (
-                                            event.participants.map((p) => (
+                                    <ul className="list-disc list-inside mb-2">
+                                        {(eventParticipants[event.id_event] ?? event.participants).length > 0 ? (
+                                            (eventParticipants[event.id_event] ?? event.participants).map((p) => (
                                                 <li key={p.id_community_member}>
                                                     <button
                                                         onClick={() => handleMemberClick(p.id_community_member)}
@@ -102,6 +122,10 @@ export default function EventList() {
                                             <li>No participants yet.</li>
                                         )}
                                     </ul>
+                                    <AddParticipant
+                                        eventId={event.id_event}
+                                        onSuccess={() => fetchParticipantsForEvent(event.id_event)}
+                                    />
                                 </div>
                             )}
                         </div>
