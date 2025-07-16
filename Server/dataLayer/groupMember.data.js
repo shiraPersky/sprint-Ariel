@@ -45,8 +45,6 @@ async function getByIds({ id_group = null, id_community_member = null }) {
 }
 
 
-
-
 async function remove(id_community_member, id_group) {
   return await prisma.groupMember.delete({
     where: {

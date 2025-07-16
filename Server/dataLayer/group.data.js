@@ -1,8 +1,12 @@
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
-async function create(data) {
-  return await prisma.group.create({ data });
+async function create({ name  }) {
+  return await prisma.group.create({
+    data: {
+      group_name: name,
+    }
+  });
 }
 
 // Retrieve all groups from the database, including their members
@@ -34,10 +38,17 @@ async function remove(id) {
   });
 }
 
+async function findByName(name) {
+  return await prisma.group.findFirst({
+    where: { group_name: name },
+  });
+}
+
 export default {
   create,
   getAll,
   getById,
   update,
   remove,
+  findByName,
 };

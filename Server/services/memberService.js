@@ -290,8 +290,6 @@ function prepareDataForPrisma(data, isUpdate = false) {
 }
 
 
-
-
 export async function createOrUpdateMember(id, data) {
   let parsedId = null;
 
@@ -305,9 +303,9 @@ export async function createOrUpdateMember(id, data) {
         return await update(parsedId, updateData);
       }
     }
-
   }
-console.log("Creating new member with data:", data);
+
+  console.log("Creating new member with data:", data);
   data.english_name = data.english_name || data.fullName || 'Unknown';
   const createData = prepareDataForPrisma(data, false);
   const newMember = await create(createData);
