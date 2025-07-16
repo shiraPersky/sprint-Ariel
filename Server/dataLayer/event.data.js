@@ -28,10 +28,38 @@ async function remove(id) {
   });
 }
 
+async function getAllWithParticipants() {
+  const events = await prisma.event.findMany({
+    include: {
+      participantEvents: {
+        include: {
+          member: {
+            select: {
+              id_community_member: true,
+              english_name: true
+            }
+          }
+        }
+      }
+    }
+  });
+
+  return events.map((event) => ({
+    id_event: event.id_event,
+    description: event.description,
+    type: event.type,
+    time: event.time,
+    location: event.location,
+    participants: event.participantEvents.map((pe) => pe.member),
+  }));
+}
+
+
 export default {
   create,
   getAll,
   getById,
   update,
   remove,
+  getAllWithParticipants,
 };

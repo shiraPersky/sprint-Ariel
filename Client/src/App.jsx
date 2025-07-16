@@ -7,6 +7,8 @@ import GroupDetailsPage from "./pages/GroupDetailsPage/GroupDetailsPage"
 import UserSearchComponent from "./pages/Searchpage/UserSearchComponent";
 import UserProfileForm from "./pages/UserProfileForm";
 import CommunityMembersPage from "./pages/CommunityPage";
+import EventList from "./pages/EventPages/EventList";
+
 import "./pages/index.css"; 
 import CvTemporaryPage from "./pages/cv/CvTemporaryPage";
 
@@ -27,6 +29,7 @@ function App() {
         <Route path="/manager/members/:id" element={<AdminViewUserProfile />} />
 
         <Route path="/group/:groupId" element={<GroupDetailsPage />} />
+        <Route path="/events" element={<EventList />} />
 
        {<Route path="/" element={<UserProfileForm />} />}
         {/* <Route path="/member/data" element={<UploadData />} /> */}
