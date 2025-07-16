@@ -289,15 +289,6 @@ function prepareDataForPrisma(data, isUpdate = false) {
   return prismaData;
 }
 
-
-export async function getAllMembers() {
-  try {
-    const members = await getAll();
-    return members;
-  } catch (error) {
-    throw new Error('Failed to retrieve members');
-
-
 export async function createOrUpdateMember(id, data) {
   let parsedId = null;
 
@@ -311,9 +302,9 @@ export async function createOrUpdateMember(id, data) {
         return await update(parsedId, updateData);
       }
     }
-
   }
-console.log("Creating new member with data:", data);
+
+  console.log("Creating new member with data:", data);
   data.english_name = data.english_name || data.fullName || 'Unknown';
   const createData = prepareDataForPrisma(data, false);
   const newMember = await create(createData);
