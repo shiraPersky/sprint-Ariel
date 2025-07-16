@@ -262,7 +262,63 @@ const getAllUsers = async () => {
       alert('שגיאה בחיפוש משתמשים');
     }
   }
+const removeUsersFromGroup = async (groupId, userIds) => {
+  setLoading(true);
+  try {
+    console.log('🗑️ Removing users from group:', { groupId, userIds });
 
+    const response = await fetch(`http://localhost:5000/communities/remove-members`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        id_group: groupId,
+        id_community_members: userIds
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('✅ Remove users result:', result);
+
+    return result;
+  } catch (error) {
+    console.error('❌ Error removing users:', error);
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+};
+
+const createGroup = async (groupData) => {
+  setLoading(true);
+  try {
+    const response = await fetch('http://localhost:5000/communities/add-communities', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name: groupData.name }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('✅ Group created:', result);
+    return result;
+  } catch (error) {
+    console.error('❌ Error creating group:', error);
+    return { success: false, error: error.message };
+  } finally {
+    setLoading(false);
+  }
+};
 
 const getAllGroups = async () => {
     try {
@@ -287,40 +343,40 @@ const getAllGroups = async () => {
   }
   
 
-  const removeUsersFromGroup = async (groupId, userIds) => {
-    try {
-      console.log('➖ [MOCK] Removing users from group:', { groupId, userIds });
+  // const removeUsersFromGroup = async (groupId, userIds) => {
+  //   try {
+  //     console.log('➖ [MOCK] Removing users from group:', { groupId, userIds });
       
-      await simulateNetworkDelay(1000);
+  //     await simulateNetworkDelay(1000);
       
-      // בסימולציה - נסיר את המשתמשים מהקבוצה ברשימה המקומית
-      const groupData = MOCK_GROUPS_DETAILED.find(g => g.id === parseInt(groupId));
-      if (!groupData) {
-        throw new Error('Group not found');
-      }
+  //     // בסימולציה - נסיר את המשתמשים מהקבוצה ברשימה המקומית
+  //     const groupData = MOCK_GROUPS_DETAILED.find(g => g.id === parseInt(groupId));
+  //     if (!groupData) {
+  //       throw new Error('Group not found');
+  //     }
       
-      // עדכן את המשתמשים שהוסרו (בדמה)
-      let removedCount = 0;
-      userIds.forEach(userId => {
-        const user = MOCK_USERS.find(u => u.id === parseInt(userId));
-        if (user) {
-          const groupIndex = user.groups.findIndex(g => g.id === parseInt(groupId));
-          if (groupIndex !== -1) {
-            user.groups.splice(groupIndex, 1);
-            removedCount++;
-          }
-        }
-      });
+  //     // עדכן את המשתמשים שהוסרו (בדמה)
+  //     let removedCount = 0;
+  //     userIds.forEach(userId => {
+  //       const user = MOCK_USERS.find(u => u.id === parseInt(userId));
+  //       if (user) {
+  //         const groupIndex = user.groups.findIndex(g => g.id === parseInt(groupId));
+  //         if (groupIndex !== -1) {
+  //           user.groups.splice(groupIndex, 1);
+  //           removedCount++;
+  //         }
+  //       }
+  //     });
       
-      console.log(`✅ [MOCK] Successfully removed ${removedCount} users from group ${groupId}`);
-      return { success: true, removedCount };
+  //     console.log(`✅ [MOCK] Successfully removed ${removedCount} users from group ${groupId}`);
+  //     return { success: true, removedCount };
       
-    } catch (error) {
-      console.error('❌ [MOCK] Error removing users from group:', error);
-      alert('שגיאה בהסרת משתמשים מהקבוצה');
-      return { success: false, error: error.message };
-    }
-  };
+  //   } catch (error) {
+  //     console.error('❌ [MOCK] Error removing users from group:', error);
+  //     alert('שגיאה בהסרת משתמשים מהקבוצה');
+  //     return { success: false, error: error.message };
+  //   }
+  // };
 const uploadExcelFile = async (file) => {
   try {
     setLoading(true);
@@ -420,7 +476,67 @@ const uploadExcelFile = async (file) => {
   //     setLoading(false);
   //   }
   // };
+const updateGroupName = async (groupId, newName) => {
+  setLoading(true);
+  try {
+    console.log('🔄 Updating group name:', { groupId, newName });
+    
+    const response = await fetch('http://localhost:5000/communities/update-name', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        id_group: groupId,
+        group_name: newName
+      }),
+    });
 
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('✅ Update group name result:', result);
+
+    return result;
+  } catch (error) {
+    console.error('❌ Error updating group name:', error);
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+};
+
+const deleteGroup = async (groupId) => {
+  setLoading(true);
+  try {
+    console.log('🗑️ Deleting group:', groupId);
+
+    const response = await fetch(`http://localhost:5000/communities/remove-community/${groupId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('✅ Group deleted successfully:', result);
+
+    return result;
+  } catch (error) {
+    console.error('❌ Error deleting group:', error);
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+};
+
+// ב-return הוסף: updateGroupName
 ;const searchUsers = async (searchText, selectedGroups) => {
   try {
     setLoading(true);
@@ -445,7 +561,7 @@ const uploadExcelFile = async (file) => {
     }
 
     const usersData = await response.json();
-    console.log('✅ [MOCK] Found users:', usersData.data);
+    console.log('✅ searchUsers:', usersData.data);
     return usersData;
   } catch (error) {
     console.error('Error searching users:', error);
@@ -456,146 +572,217 @@ const uploadExcelFile = async (file) => {
   }
 };
 
-  const searchGroups = async (searchText) => {
-    try {
-      setLoading(true);
-      console.log('🔍 [MOCK] Searching groups with:', { searchText });
+  // const searchGroups = async (searchText) => {
+  //   try {
+  //     setLoading(true);
+  //     console.log('🔍 [MOCK] Searching groups with:', { searchText });
       
-      await simulateNetworkDelay(1000);
+  //     await simulateNetworkDelay(1000);
       
-      let filteredGroups = [...MOCK_GROUPS_DETAILED];
+  //     let filteredGroups = [...MOCK_GROUPS_DETAILED];
       
-      // פילטר לפי טקסט חיפוש
-      if (searchText && searchText.trim()) {
-        filteredGroups = filteredGroups.filter(group => 
-          group.name.toLowerCase().includes(searchText.toLowerCase()) ||
-          group.description.toLowerCase().includes(searchText.toLowerCase()) ||
-          group.category.toLowerCase().includes(searchText.toLowerCase())
-        );
-      }
+  //     // פילטר לפי טקסט חיפוש
+  //     if (searchText && searchText.trim()) {
+  //       filteredGroups = filteredGroups.filter(group => 
+  //         group.name.toLowerCase().includes(searchText.toLowerCase()) ||
+  //         group.description.toLowerCase().includes(searchText.toLowerCase()) ||
+  //         group.category.toLowerCase().includes(searchText.toLowerCase())
+  //       );
+  //     }
       
-      console.log(`✅ [MOCK] Found ${filteredGroups.length} groups`);
-      return filteredGroups;
+  //     console.log(`✅ [MOCK] Found ${filteredGroups.length} groups`);
+  //     return filteredGroups;
       
-    } catch (error) {
-      console.error('❌ [MOCK] Error searching groups:', error);
-      alert('שגיאה בחיפוש קבוצות');
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  };
+  //   } catch (error) {
+  //     console.error('❌ [MOCK] Error searching groups:', error);
+  //     alert('שגיאה בחיפוש קבוצות');
+  //     return [];
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   // 🆕 פונקציה חדשה - חיפוש חברי קבוצה
-  const getGroupMembers = async (groupId) => {
-    try {
-      setLoading(true);
-      console.log('👥 [MOCK] Getting members for group:', groupId);
+  // const getGroupMembers = async (groupId) => {
+  //   try {
+  //     setLoading(true);
+  //     console.log('👥 [MOCK] Getting members for group:', groupId);
       
-      await simulateNetworkDelay(1000);
+  //     await simulateNetworkDelay(1000);
       
-      // מצא את כל המשתמשים שחברים בקבוצה הזו
-      const groupMembers = MOCK_USERS.filter(user => 
-        user.groups.some(userGroup => userGroup.id === parseInt(groupId))
-      );
+  //     // מצא את כל המשתמשים שחברים בקבוצה הזו
+  //     const groupMembers = MOCK_USERS.filter(user => 
+  //       user.groups.some(userGroup => userGroup.id === parseInt(groupId))
+  //     );
       
-      console.log(`✅ [MOCK] Found ${groupMembers.length} members in group ${groupId}`);
-      return groupMembers;
+  //     console.log(`✅ [MOCK] Found ${groupMembers.length} members in group ${groupId}`);
+  //     return groupMembers;
       
-    } catch (error) {
-      console.error('❌ [MOCK] Error getting group members:', error);
-      alert('שגיאה בטעינת חברי הקבוצה');
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  };
+  //   } catch (error) {
+  //     console.error('❌ [MOCK] Error getting group members:', error);
+  //     alert('שגיאה בטעינת חברי הקבוצה');
+  //     return [];
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   // 🆕 פונקציה חדשה - קבלת פרטי קבוצה
-  const getGroupDetails = async (groupId) => {
-    try {
-      console.log('📋 [MOCK] Getting group details for:', groupId);
+const getGroupMembers = async (groupId) => {
+  setLoading(true);
+  try {
+    console.log('🔄 Fetching group details for:', groupId);
+    
+    const response = await fetch(`http://localhost:5000/communities/group/${groupId}/members`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('✅ Group details API response:', result);
+    
+    if (result.success && result.data.length > 0) {
+      // נשתמש בפרטי הקבוצה מהחבר הראשון
+      const firstMember = result.data[0];
+      const groupId = firstMember.id_group;
       
-      await simulateNetworkDelay(500);
+      // יצירת אובייקט קבוצה בסיסי
+      const group = {
+        id: groupId,
+        name: `קבוצה ${groupId}`, // או תקרא ל-API נפרד לפרטי הקבוצה
+        description: `קבוצה עם ${result.count} חברים`,
+        image: '/api/placeholder/400/300',
+        category: 'כללי',
+        tags: ['קהילה'],
+        memberCount: result.count
+      };
       
-      const group = MOCK_GROUPS_DETAILED.find(g => g.id === parseInt(groupId));
-      
-      if (!group) {
-        throw new Error('Group not found');
-      }
-      
-      console.log('✅ [MOCK] Group details loaded:', group.name);
       return group;
-      
-    } catch (error) {
-      console.error('❌ [MOCK] Error getting group details:', error);
-      alert('שגיאה בטעינת פרטי הקבוצה');
-      return null;
+    } else {
+      // אם אין חברים, עדיין תחזיר קבוצה ריקה
+      return {
+        id: parseInt(groupId),
+        name: `קבוצה ${groupId}`,
+        description: 'קבוצה ריקה',
+        image: '/api/placeholder/400/300',
+        category: 'כללי',
+        tags: [],
+        memberCount: 0
+      };
     }
-  };
-
+  } catch (error) {
+    console.error('❌ Error fetching group details:', error);
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+};
   // 🆕 פונקציה חדשה - קבלת רשימת משתמשים זמינים להוספה לקבוצה
-  const getAvailableUsersForGroup = async (groupId) => {
-    try {
-      console.log('👤 [MOCK] Getting available users for group:', groupId);
+  // const getAvailableUsersForGroup = async (groupId) => {
+  //   try {
+  //     console.log('👤 [MOCK] Getting available users for group:', groupId);
       
-      await simulateNetworkDelay(800);
+  //     await simulateNetworkDelay(800);
       
-      // מצא משתמשים שלא חברים בקבוצה
-      const availableUsers = MOCK_USERS.filter(user => 
-        !user.groups.some(userGroup => userGroup.id === parseInt(groupId))
-      ).map(user => ({
-        id: user.id,
-        name: user.name,
-        position: user.position,
-        company: user.company
-      }));
+  //     // מצא משתמשים שלא חברים בקבוצה
+  //     const availableUsers = MOCK_USERS.filter(user => 
+  //       !user.groups.some(userGroup => userGroup.id === parseInt(groupId))
+  //     ).map(user => ({
+  //       id: user.id,
+  //       name: user.name,
+  //       position: user.position,
+  //       company: user.company
+  //     }));
       
-      console.log(`✅ [MOCK] Found ${availableUsers.length} available users for group ${groupId}`);
-      return availableUsers;
+  //     console.log(`✅ [MOCK] Found ${availableUsers.length} available users for group ${groupId}`);
+  //     return availableUsers;
       
-    } catch (error) {
-      console.error('❌ [MOCK] Error getting available users:', error);
-      alert('שגיאה בטעינת רשימת המשתמשים הזמינים');
-      return [];
-    }
-  };
+  //   } catch (error) {
+  //     console.error('❌ [MOCK] Error getting available users:', error);
+  //     alert('שגיאה בטעינת רשימת המשתמשים הזמינים');
+  //     return [];
+  //   }
+  // };
+const addUsersToGroup = async (groupId, userIds) => {
+  setLoading(true);
+  try {
+    console.log('➕ Adding users to group:', { groupId, userIds });
+    
+    const response = await fetch(`http://localhost:5000/communities/add-members`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        id_group: Number(groupId),
+        id_community_members: userIds 
+      })
+    });
 
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('✅ Add users to group result:', result);
+    
+    if (result.success) {
+      return { 
+        success: true, 
+        addedCount: userIds.length,
+        data: result.data 
+      };
+    } else {
+      return { success: false, error: result.error || 'Unknown error' };
+    }
+  } catch (error) {
+    console.error('❌ Error adding users to group:', error);
+    return { success: false, error: error.message };
+  } finally {
+    setLoading(false);
+  }
+};
+
+// ב-return הוסף: addUsersToGroup
   // 🆕 פונקציה חדשה - הוספת משתמשים לקבוצה
-  const addUsersToGroup = async (groupId, userIds) => {
-    try {
-      console.log('➕ [MOCK] Adding users to group:', { groupId, userIds });
+  // const addUsersToGroup = async (groupId, userIds) => {
+  //   try {
+  //     console.log('➕ [MOCK] Adding users to group:', { groupId, userIds });
       
-      await simulateNetworkDelay(1200);
+  //     await simulateNetworkDelay(1200);
       
-      // בסימולציה - נוסיף את המשתמשים לקבוצה ברשימה המקומית
-      const groupData = MOCK_GROUPS_DETAILED.find(g => g.id === parseInt(groupId));
-      if (!groupData) {
-        throw new Error('Group not found');
-      }
+  //     // בסימולציה - נוסיף את המשתמשים לקבוצה ברשימה המקומית
+  //     const groupData = MOCK_GROUPS_DETAILED.find(g => g.id === parseInt(groupId));
+  //     if (!groupData) {
+  //       throw new Error('Group not found');
+  //     }
       
-      // עדכן את המשתמשים שנוספו (בדמה)
-      userIds.forEach(userId => {
-        const user = MOCK_USERS.find(u => u.id === parseInt(userId));
-        if (user && !user.groups.some(g => g.id === parseInt(groupId))) {
-          user.groups.push({ 
-            id: parseInt(groupId), 
-            name: groupData.name 
-          });
-        }
-      });
+  //     // עדכן את המשתמשים שנוספו (בדמה)
+  //     userIds.forEach(userId => {
+  //       const user = MOCK_USERS.find(u => u.id === parseInt(userId));
+  //       if (user && !user.groups.some(g => g.id === parseInt(groupId))) {
+  //         user.groups.push({ 
+  //           id: parseInt(groupId), 
+  //           name: groupData.name 
+  //         });
+  //       }
+  //     });
       
-      console.log(`✅ [MOCK] Successfully added ${userIds.length} users to group ${groupId}`);
-      return { success: true, addedCount: userIds.length };
+  //     console.log(`✅ [MOCK] Successfully added ${userIds.length} users to group ${groupId}`);
+  //     return { success: true, addedCount: userIds.length };
       
-    } catch (error) {
-      console.error('❌ [MOCK] Error adding users to group:', error);
-      alert('שגיאה בהוספת משתמשים לקבוצה');
-      return { success: false, error: error.message };
-    }
-  };
-
-  
+  //   } catch (error) {
+  //     console.error('❌ [MOCK] Error adding users to group:', error);
+  //     alert('שגיאה בהוספת משתמשים לקבוצה');
+  //     return { success: false, error: error.message };
+  //   }
+  // };
 
   return {
     loading,
@@ -604,14 +791,15 @@ const uploadExcelFile = async (file) => {
     fetchGroups,
     getAllUsers,             // 🆕 פונקציה חדשה
     searchUsers,
-    searchGroups,
+  updateGroupName , // 🆕 פונקציה חדשה
     getAllGroups,
     removeUsersFromGroup,    // 🆕 פונקציה חדשה
     getGroupMembers,          // 🆕 פונקציה חדשה
-    getGroupDetails,          // 🆕 פונקציה חדשה
-    getAvailableUsersForGroup, // 🆕 פונקציה חדשה
+              // 🆕 פונקציה חדשה// 🆕 פונקציה חדשה
     addUsersToGroup,
-    uploadExcelFile           // 🆕 פונקציה חדשה
+    uploadExcelFile,
+    createGroup,
+    deleteGroup,             // 🆕 פונקציה חדשה
   };
 };
 

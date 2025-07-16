@@ -12,7 +12,7 @@ export default function EventList() {
         const response = await fetch("http://localhost:5000/events/events-with-participants"); 
         if (!response.ok) throw new Error("Failed to fetch events");
         const data = await response.json();
-        setEvents(data);
+        setEvents(data.data);
       } catch (err) {
         setError(err.message);
       } finally {
