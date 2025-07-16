@@ -1,15 +1,21 @@
 import express from 'express';
-import { getMemberById, createMemberWithLinkedIn, createOrUpdateMember } from "../services/memberService.js";
-
-
+import { getMemberForUser, getMemberById, createMemberWithLinkedIn, createOrUpdateMember } from "../services/memberService.js";
 
 const router = express.Router();
-
+// function safeToString(value) {
+//       if (typeof value === 'string') return value;
+//       if (typeof value === 'number' && !isNaN(value)) return String(value);
+//       return undefined; // או null, לפי הצורך
+//     }
 //Retrieve a single community member by their id.
 router.get('/:id', async (req, res, next) => {
   try {
-    const id = parseInt(req.params.id, 10);
-    const user = await getMemberById(id);
+
+    let id = req.params.id;
+    //if (typeof id === 'number' && !isNaN(id))  id= String(id);
+
+console.log ('ID:', id);
+    const user = await getMemberForUser(id);
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -28,8 +34,8 @@ router.get('/:id', async (req, res, next) => {
 // PUT /member/:id -> update
 router.put('/:id', async (req, res, next) => {
   try {
-  
-    const id = parseInt(req.params.id, 10);
+    console.log('Updating member with ID:', req.params.id);
+    const id =req.params.id;
   if (isNaN(id)) 
     return res.status(400).json({ error: 'Invalid ID' });
     const data = req.body;
