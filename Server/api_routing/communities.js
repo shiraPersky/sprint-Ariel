@@ -2,6 +2,7 @@ import express from "express";
 import { getAllGroups } from "../services/groupService.js";
 import {
   addMemberToGroup,
+  addMultipleMembersToGroup,
   removeMemberFromGroup,
 } from "../services/groupMember.service.js";
 
@@ -104,7 +105,31 @@ router.post("/add-member", async (req, res, next) => {
   }
 });
 
-//Deletemember by id_group, id_community_member
+// Add multiple members to group
+router.post("/add-members", async (req, res, next) => {
+  try {
+    const { id_group, id_community_members } = req.body;
+
+    if (!id_group || !Array.isArray(id_community_members) || id_community_members.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Group ID and non-empty array of member IDs are required",
+      });
+    }
+
+    const results = await addMultipleMembersToGroup(id_group, id_community_members);
+
+    res.status(201).json({
+      success: true,
+      data: results,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+//Delete member by id_group, id_community_member
 router.delete("/remove-member", async (req, res, next) => {
   try {
     const id_group = parseInt(req.query.id_group);
