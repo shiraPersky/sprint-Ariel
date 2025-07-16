@@ -10,6 +10,7 @@ import {
 import { getMembersNotInGroup } from '../services/groupMember.service.js';
 import { getMembersByGroupId ,updateGroupName } from '../services/groupService.js';
 import { createGroup  } from '../services/groupService.js';
+import { deleteGroup } from '../services/groupService.js';
 
 
 const router = express.Router();
@@ -238,6 +239,21 @@ router.delete("/remove-members", async (req, res, next) => {
   }
 });
 
-   
+ // DELETE /communities/:id
+router.delete('/remove-community/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const deletedGroup = await deleteGroup(id);
+
+    res.json({
+      success: true,
+      message: 'Group deleted successfully',
+      data: deletedGroup,
+    });
+  } catch (error) {
+    next(error);
+  }
+});  
 
 export default router;
