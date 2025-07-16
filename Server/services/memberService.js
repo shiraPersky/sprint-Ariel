@@ -207,26 +207,26 @@ export async function createMemberWithLinkedIn(linkedin_url) {
 /**
  * דוגמה לשימוש
  */
-export async function testLinkedInScraping() {
-  try {
-    const testUrls = [
-      "https://www.linkedin.com/in/williamhgates",
-      "https://www.linkedin.com/in/jeannie-wyrick-b4760710a",
-    ];
+// export async function testLinkedInScraping() {
+//   try {
+//     const testUrls = [
+//       "https://www.linkedin.com/in/williamhgates",
+//       "https://www.linkedin.com/in/jeannie-wyrick-b4760710a",
+//     ];
 
-    for (const url of testUrls) {
-      console.log(`\n🧪 Testing: ${url}`);
-      const result = await createMemberWithLinkedIn(url);
-      console.log("Result:", result);
-    }
-  } catch (error) {
-    console.error("Test failed:", error);
-  }
-}
+//     for (const url of testUrls) {
+//       console.log(`\n🧪 Testing: ${url}`);
+//       const result = await createMemberWithLinkedIn(url);
+//       console.log("Result:", result);
+//     }
+//   } catch (error) {
+//     console.error("Test failed:", error);
+//   }
+// }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
-  testLinkedInScraping();
-}
+// if (import.meta.url === `file://${process.argv[1]}`) {
+//   testLinkedInScraping();
+// }
 
 
 function prepareDataForPrisma(data, isUpdate = false) {
