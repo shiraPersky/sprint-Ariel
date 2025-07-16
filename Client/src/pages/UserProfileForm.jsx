@@ -12,23 +12,19 @@ const contributionOptions = [
 
 export default function EditableUserProfile() {
   const [activeTab, setActiveTab] = useState("contact");
-  const { id: rawId } = useParams();
-const id = rawId && !isNaN(rawId) ? parseInt(rawId, 10) : null;
-
+const { id } = useParams();
 
   const [formData, setFormData] = useState({
 
     english_name: "",
-    title: "softward",
-    phone: "0585907923",
-    email: "miryamgur@gmail.com",
+    title: "",
+    phone: "",
+    email: "",
     linkedin_url: "",
     facebook_url: "",
-    about: "jjfwf jfwej kjjkjef kkjkf",
-    skills: ["Writing", "Design", "Marketing"],
-    participantValues: [
-      { id_community_value: "", description: "" },
-    ],
+    about: "",
+    skills: [],
+    participantValues: [],
     jobs: [], 
   });
 
@@ -50,18 +46,16 @@ useEffect(() => {
     setFetchRequest({
       url: `/member/${id}`,
       method: "GET",
-      onSuccess: (data) => {
-        console.log("Fetched profile data:", data);
-        const formattedSkills = Array.isArray(data.skills)
-          ? data.skills.map((skill) => skill.description)
-          : [];
+     onSuccess: (data) => {
+  console.log("Fetched profile data:", data);
 
-        setFormData({
-          ...data,
-          skills: formattedSkills,
-        });
-        setOriginalData(data);
-      },
+  setFormData({
+    ...data,
+    skills: Array.isArray(data.skills) ? data.skills : [],
+  });
+  setOriginalData(data);
+}
+,
       onFailure: (error) => {
         console.error("Failed to fetch profile:", error);
         alert("Error loading profile");
@@ -70,14 +64,14 @@ useEffect(() => {
   } else {
     const emptyData = {
       english_name: "",
-      title: "softward",
-      phone: "0585907923",
-      email: "miryamgur@gmail.com",
+      title: "",
+      phone: "",
+      email: "@gmail.com",
       linkedin_url: "",
       facebook_url: "",
-      about: "jjfwf jfwej kjjkjef kkjkf",
-      skills: ["Writing", "Design", "Marketing"],
-      participantValues: [{ id_community_value: "", description: "" }],
+      about: "",
+      skills: [],
+      participantValues: [],
       jobs: [],
     };
     setFormData(emptyData);
