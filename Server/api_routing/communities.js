@@ -79,6 +79,7 @@ router.get("/group/:id/members", async (req, res, next) => {
   }
 });
 
+// Add member to groups
 router.post("/add-member", async (req, res, next) => {
   try {
     const { id_group, id_community_member } = req.body;
@@ -103,7 +104,7 @@ router.post("/add-member", async (req, res, next) => {
   }
 });
 
-//deletemember by id_group, id_community_member
+//Deletemember by id_group, id_community_member
 router.delete("/remove-member", async (req, res, next) => {
   try {
     const id_group = parseInt(req.query.id_group);
