@@ -3,7 +3,6 @@ import groupData from '../dataLayer/group.data.js';
 import groupMemberData from '../dataLayer/groupMember.data.js';
 
 
-
 // Service function to get all groups
 export async function getAllGroups() {
   const groups = await groupData.getAll();
