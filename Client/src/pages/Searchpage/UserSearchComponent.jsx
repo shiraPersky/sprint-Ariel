@@ -92,7 +92,15 @@ const UserSearchComponent = () => {
       return group ? group.name : '';
     }).filter(name => name);
   };
-
+const handleGroupDeleted = async (groupId) => {
+  console.log('🗑️ Deleting group:', groupId);
+  await deleteGroup(groupId);
+  // רענן את הקבוצות
+  const refreshedGroups = await getAllGroups();
+  const groupsArray = refreshedGroups.success ? refreshedGroups.data : [];
+  setOriginalGroups(groupsArray);
+  await fetchGroups(); // עדכן גם את הפילטר
+};
   const handleSendToServer = async (file) => {
     try {
       const result = await uploadExcelFile(file);
@@ -240,7 +248,7 @@ const handleAddGroup = async (groupData) => {
   users={displayData.users}
   groups={displayData.groups}
   onGroupUpdated={handleGroupUpdated}
-  onGroupDeleted={deleteGroup} // ← הוסף את זה
+  onGroupDeleted={handleGroupDeleted} // ← הוסף את זה
 />
         </div>
 
