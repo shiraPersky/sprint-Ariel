@@ -4,6 +4,7 @@ import { getCommonMembersInGroups } from '../services/groupService.js';
 
 const router = express.Router();
 
+//Return all members included data 
 router.get('/', async (req, res, next) => {
   try {
     console.log("get all");
@@ -14,11 +15,12 @@ router.get('/', async (req, res, next) => {
   }
 });
 
+//Search people by some groups
 router.post('/search/groups', async (req, res, next) => {
   try {
     const { groupIds } = req.body;
 
-    if (!Array.isArray(groupIds) || groupIds.length < 2) {
+    if (!Array.isArray(groupIds) || groupIds.length === 0) {
       return res.status(400).json({ success: false, error: 'Please provide at least two group IDs' });
     }
 

@@ -2,11 +2,8 @@ import express from 'express';
 import { getMemberForUser, getMemberById, createMemberWithLinkedIn, createOrUpdateMember } from "../services/memberService.js";
 
 const router = express.Router();
-// function safeToString(value) {
-//       if (typeof value === 'string') return value;
-//       if (typeof value === 'number' && !isNaN(value)) return String(value);
-//       return undefined; // או null, לפי הצורך
-//     }
+
+
 //Retrieve a single community member by their id.
 router.get('/:id', async (req, res, next) => {
   try {
@@ -31,7 +28,11 @@ console.log ('ID:', id);
 });
 
 
+
 // PUT /member/:id -> update
+
+// Update data of an existing community member by their id
+
 router.put('/:id', async (req, res, next) => {
   try {
     console.log('Updating member with ID:', req.params.id);
@@ -46,7 +47,7 @@ router.put('/:id', async (req, res, next) => {
   }
 });
 
-// PUT /member -> create
+// add data of non existing community member withoud id(create id automatically)
 router.put('/', async (req, res, next) => {
   try {
     const data = req.body;
