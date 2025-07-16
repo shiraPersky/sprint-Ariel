@@ -2,7 +2,9 @@ import express from "express";
 import { getAllGroups } from "../services/groupService.js";
 import {
   addMemberToGroup,
+  addMultipleMembersToGroup,
   removeMemberFromGroup,
+  removeMultipleMembersFromGroup,
 } from "../services/groupMember.service.js";
 
 import { getMembersNotInGroup } from '../services/groupMember.service.js';
@@ -104,7 +106,31 @@ router.post("/add-member", async (req, res, next) => {
   }
 });
 
-//Deletemember by id_group, id_community_member
+// Add multiple members to group
+router.post("/add-members", async (req, res, next) => {
+  try {
+    const { id_group, id_community_members } = req.body;
+
+    if (!id_group || !Array.isArray(id_community_members) || id_community_members.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Group ID and non-empty array of member IDs are required",
+      });
+    }
+
+    const results = await addMultipleMembersToGroup(id_group, id_community_members);
+
+    res.status(201).json({
+      success: true,
+      data: results,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+//Delete member by id_group, id_community_member
 router.delete("/remove-member", async (req, res, next) => {
   try {
     const id_group = parseInt(req.query.id_group);
@@ -134,6 +160,7 @@ router.delete("/remove-member", async (req, res, next) => {
   }
 });
 
+
 // Add new group
 router.post('/add-communities', async (req, res, next) => {
   try {
@@ -151,10 +178,43 @@ router.post('/add-communities', async (req, res, next) => {
     res.status(201).json({
       success: true,
       data: newGroup
-    });
+ });
   } catch (error) {
     next(error);
   }
 });
+
+// Delete multiple members from a group
+router.delete("/remove-members", async (req, res, next) => {
+  try {
+    const { id_group, id_community_members } = req.body;
+
+    if (
+      isNaN(parseInt(id_group)) ||
+      !Array.isArray(id_community_members) ||
+      id_community_members.length === 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: "Group ID must be valid and a non-empty array of member IDs is required",
+      });
+    }
+
+    const result = await removeMultipleMembersFromGroup(
+      parseInt(id_group),
+      id_community_members.map(Number)
+    );
+
+    res.json({
+      success: true,
+      message: "Members removed from group successfully",
+      data: result,
+       });
+  } catch (error) {
+    next(error);
+  }
+});
+
+   
 
 export default router;
