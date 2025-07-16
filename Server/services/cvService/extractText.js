@@ -1,0 +1,19 @@
+import pdfjsLib from "pdfjs-dist/legacy/build/pdf.js";
+
+export async function extractTextFromPdfBuffer(buffer) {
+  const uint8Array = new Uint8Array(buffer);
+
+  const loadingTask = pdfjsLib.getDocument({ data: uint8Array });
+  const pdf = await loadingTask.promise;
+
+  let fullText = "";
+
+  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+    const page = await pdf.getPage(pageNum);
+    const content = await page.getTextContent();
+    const strings = content.items.map((item) => item.str);
+    fullText += strings.join(" ") + "\n";
+  }
+
+  return fullText.slice(0, 10000);
+}
