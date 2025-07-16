@@ -15,9 +15,8 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // CORS setup: allow frontend to talk to backend
 app.use(cors({
-     origin: '*', //("for time of dev")
-//   origin: 'http://0.0.0.0:3000', 
-//   credentials: true, 
+  origin: 'http://localhost:5173',
+  credentials: true
 }));
 
 // Routes

@@ -6,25 +6,32 @@ import { getMemberById, createMemberWithLinkedIn, createOrUpdateMember } from ".
 const router = express.Router();
 
 //Retrieve a single community member by their id.
-router.get('/:id', async (req, res) => {
-    try {
-        const id = req.params.id;
-        const user = await getMemberById(id);
+router.get('/:id', async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const user = await getMemberById(id);
 
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        res.json(user);
-    } catch (err) {
-        next(err); 
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
     }
+
+    // Transform the skills array into a simple list of strings
+    const skills = user.skills?.map(skill => skill.description) || [];
+
+    res.json({ ...user, skills });
+  } catch (err) {
+    next(err);
+  }
 });
+
 
 // PUT /member/:id -> update
 router.put('/:id', async (req, res, next) => {
   try {
-    const id = req.params.id;
+  
+    const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) 
+    return res.status(400).json({ error: 'Invalid ID' });
     const data = req.body;
     const result = await createOrUpdateMember(id, data);
     res.json(result);

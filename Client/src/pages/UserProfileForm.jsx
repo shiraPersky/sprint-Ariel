@@ -12,11 +12,13 @@ const contributionOptions = [
 
 export default function EditableUserProfile() {
   const [activeTab, setActiveTab] = useState("contact");
-  const { id } = useParams();
+  const { id: rawId } = useParams();
+const id = rawId && !isNaN(rawId) ? parseInt(rawId, 10) : null;
+
 
   const [formData, setFormData] = useState({
 
-    english_name: "ggg",
+    english_name: "",
     title: "softward",
     phone: "0585907923",
     email: "miryamgur@gmail.com",
@@ -43,52 +45,46 @@ const formatSkillsToString = (skillsArray) => {
   return skillsArray.map((skill) => skill.description).join(', ');
 };
 
-  useEffect(() => {
-    if (id) {
-      // בקשה רגילה עם fetch
-      fetch(`http://localhost:5000/member/${id}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then((data) => {
-          console.log("Fetched profile data:", data);
-          const formattedSkills = formatSkillsToString(data.skills);
-            setFormData({
-            ...data,
-            skills: formattedSkills
-          });
-          setOriginalData(data);
-        })
-        .catch((error) => {
-          console.error("Failed to fetch profile:", error);
-          alert("Error loading profile");
-        },
-      });
-    } else {
-      const emptyData = {
-        english_name: "ggg",
-        title: "softward",
-        phone: "0585907923",
-        email: "miryamgur@gmail.com",
-        linkedin_url: "",
-        facebook_url: "",
-        about: "jjfwf jfwej kjjkjef kkjkf",
-        skills: ["Writing", "Design", "Marketing"],
-        participantValues: [{ id_community_value: "", description: "" }],
-        jobs: [], // שים לב
-      };
-      setFormData(emptyData);
-      setOriginalData(emptyData);
-    }
-  }, [id]); // הוספתי את id כתלות
+useEffect(() => {
+  if (id) {
+    setFetchRequest({
+      url: `/member/${id}`,
+      method: "GET",
+      onSuccess: (data) => {
+        console.log("Fetched profile data:", data);
+        const formattedSkills = Array.isArray(data.skills)
+          ? data.skills.map((skill) => skill.description)
+          : [];
+
+        setFormData({
+          ...data,
+          skills: formattedSkills,
+        });
+        setOriginalData(data);
+      },
+      onFailure: (error) => {
+        console.error("Failed to fetch profile:", error);
+        alert("Error loading profile");
+      },
+    });
+  } else {
+    const emptyData = {
+      english_name: "",
+      title: "softward",
+      phone: "0585907923",
+      email: "miryamgur@gmail.com",
+      linkedin_url: "",
+      facebook_url: "",
+      about: "jjfwf jfwej kjjkjef kkjkf",
+      skills: ["Writing", "Design", "Marketing"],
+      participantValues: [{ id_community_value: "", description: "" }],
+      jobs: [],
+    };
+    setFormData(emptyData);
+    setOriginalData(emptyData);
+  }
+}, [id, setFetchRequest]);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
