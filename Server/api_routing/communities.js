@@ -9,7 +9,7 @@ import {
 
 import { getMembersNotInGroup } from '../services/groupMember.service.js';
 import { getMembersByGroupId ,updateGroupName } from '../services/groupService.js';
-
+import { createGroup  } from '../services/groupService.js';
 
 
 const router = express.Router();
@@ -184,6 +184,29 @@ router.delete("/remove-member", async (req, res, next) => {
 });
 
 
+// Add new group
+router.post('/add-communities', async (req, res, next) => {
+  try {
+    const { name } = req.body;
+
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        error: 'Group name is required'
+      });
+    }
+
+    const newGroup = await createGroup({ name });
+
+    res.status(201).json({
+      success: true,
+      data: newGroup
+ });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Delete multiple members from a group
 router.delete("/remove-members", async (req, res, next) => {
   try {
@@ -209,10 +232,12 @@ router.delete("/remove-members", async (req, res, next) => {
       success: true,
       message: "Members removed from group successfully",
       data: result,
-    });
+       });
   } catch (error) {
     next(error);
   }
 });
+
+   
 
 export default router;

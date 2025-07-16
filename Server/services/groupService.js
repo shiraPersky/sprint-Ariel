@@ -64,3 +64,17 @@ export async function getCommonMembersInGroups(groupIds) {
 
   return filteredMembers;
 }
+
+export async function createGroup({ name }) {
+  if (!name) {
+    throw new Error('Group name is required');
+  }
+
+  // Check if a group with the same name already exists
+  const existingGroup = await groupData.findByName(name);
+  if (existingGroup) {
+    throw new Error('A group with this name already exists');
+  }
+
+  return await groupData.create({ name });
+}
