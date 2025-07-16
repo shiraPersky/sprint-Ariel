@@ -1,11 +1,10 @@
 // GroupDetailsPage.js - דף פרטי קבוצה עם רשימת חברים - עם קריאת API אמיתית
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate,useLocation } from 'react-router-dom';
 import { ArrowRight, Users, Building, Tag, Loader2, UserPlus, UserMinus, Trash2, X } from 'lucide-react';
 import useServerRequestsMock from '../Searchpage/testcomp'; // או useServerRequests
 import UserCard from '../Searchpage/UserCard';
 import AddUsersModal from './AddUsersModal';
-
 const GroupDetailsPage = () => {
   const { groupId } = useParams();
   const navigate = useNavigate();
@@ -17,9 +16,10 @@ const GroupDetailsPage = () => {
   const [deleteMode, setDeleteMode] = useState(false);
   const [selectedForDeletion, setSelectedForDeletion] = useState([]);
   const [deleting, setDeleting] = useState(false);
-
+  const location = useLocation();
+  const groupdata = location.state?.group; // מקבל את האובייקט שהועבר
   const { 
-    getGroupDetails, 
+    // getGroupDetails, 
     getAvailableUsersForGroup, 
     addUsersToGroup,
     removeUsersFromGroup,
@@ -101,12 +101,12 @@ const GroupDetailsPage = () => {
         console.log('🔄 Loading group data for ID:', groupId);
         
         // טען פרטי קבוצה וחברים במקביל
-        const [groupDetails, groupMembers] = await Promise.all([
-          getGroupDetails(groupId),
+        const [ groupMembers] = await Promise.all([
+          // getGroupDetails(groupId),
           getGroupMembers(groupId)
         ]);
-        
-        setGroup(groupDetails);
+        console.log('✅ Group data loaded:', groupdata);
+        setGroup(groupdata);
         setMembers(groupMembers);
         
       } catch (error) {
@@ -247,15 +247,15 @@ const GroupDetailsPage = () => {
             <div className="flex-shrink-0">
               <img
                 src={group.image}
-                alt={group.name}
+                // alt={group.group_name}
                 className="w-32 h-24 object-cover rounded-xl shadow-md"
               />
             </div>
             
             {/* פרטי הקבוצה */}
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">{group.name}</h1>
-              <p className="text-gray-600 text-lg mb-4">{group.description}</p>
+              <h1 className="text-3xl font-bold text-gray-800 mb-2">{group.group_name}</h1>
+              {/* <p className="text-gray-600 text-lg mb-4">{group.description}</p> */}
               
               <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                 <div className="flex items-center">
@@ -269,7 +269,7 @@ const GroupDetailsPage = () => {
               </div>
               
               {/* תגיות */}
-              <div className="mt-4">
+              {/* <div className="mt-4">
                 <div className="flex items-center mb-2">
                   <Tag className="w-4 h-4 ml-2" />
                   <span className="text-sm font-medium text-gray-700">תגיות:</span>
@@ -281,7 +281,7 @@ const GroupDetailsPage = () => {
                     </span>
                   ))}
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

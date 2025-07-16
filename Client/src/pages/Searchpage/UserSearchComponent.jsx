@@ -36,7 +36,8 @@ const UserSearchComponent = () => {
     getAllGroups,
     fetchGroups,
     searchUsers,
-    removeUsersFromGroup,
+    updateGroupName,
+    deleteGroup,
     uploadExcelFile,
     searchGroups,
     createGroup
@@ -75,7 +76,16 @@ const UserSearchComponent = () => {
         : [...prev, groupId]
     );
   };
-  
+  const handleGroupUpdated = async (groupId, newName) => {
+  console.log('🚀 Updating group name:', { groupId, newName });
+  await updateGroupName(groupId, newName);
+  // רענן את הקבוצות
+  const refreshedGroups = await getAllGroups();
+  const groupsArray = refreshedGroups.success ? refreshedGroups.data : [];
+  setOriginalGroups(groupsArray);
+  await fetchGroups(); // עדכן גם את הפילטר
+};
+
   const getSelectedGroupNames = () => {
     return selectedGroups.map(groupId => {
       const group = availableGroups.find(g => g.id === groupId);
@@ -226,10 +236,12 @@ const handleAddGroup = async (groupData) => {
           />
 
           <SearchResults 
-            searchMode={searchMode}
-            users={displayData.users}
-            groups={displayData.groups}
-          />
+  searchMode={searchMode}
+  users={displayData.users}
+  groups={displayData.groups}
+  onGroupUpdated={handleGroupUpdated}
+  onGroupDeleted={deleteGroup} // ← הוסף את זה
+/>
         </div>
 
         <FileUpload onFileUpload={handleFileUpload} onSendToServer={handleSendToServer} />
