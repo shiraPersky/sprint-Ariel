@@ -1,5 +1,7 @@
 import { ApifyClient } from "apify-client";
 import communityMemberData from "../dataLayer/communityMember.data.js";
+import groupData from "../dataLayer/group.data.js";
+
 
 const { getById, getAll, create , update} = communityMemberData;
 
@@ -7,6 +9,23 @@ const { getById, getAll, create , update} = communityMemberData;
 const client = new ApifyClient({
   token: process.env.APIFY_API_TOKEN || "<YOUR_API_TOKEN>",
 });
+
+export async function updateGroupName(id_group, new_name) {
+  if (!id_group || !new_name) {
+    throw new Error("Group ID and new name are required");
+  }
+
+  const group = await groupData.getById(id_group);
+  if (!group) {
+    throw new Error("Group not found");
+  }
+
+  const updated = await groupData.update(id_group, {
+    group_name: new_name,
+  });
+
+  return updated;
+}
 
 export async function getMemberById(id) {
   if (typeof id !== "string") {

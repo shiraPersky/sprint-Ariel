@@ -8,11 +8,34 @@ import {
 } from "../services/groupMember.service.js";
 
 import { getMembersNotInGroup } from '../services/groupMember.service.js';
-import { getMembersByGroupId } from '../services/groupService.js';
+import { getMembersByGroupId ,updateGroupName } from '../services/groupService.js';
 
 
 
 const router = express.Router();
+
+//Edit group name
+router.put("/update-name", async (req, res, next) => {
+  try {
+    const { id_group, group_name } = req.body;
+
+    if (!id_group || !group_name) {
+      return res.status(400).json({
+        success: false,
+        error: "Group ID and new name are required",
+      });
+    }
+
+    const updatedGroup = await updateGroupName(id_group, group_name);
+
+    res.json({
+      success: true,
+      data: updatedGroup,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 // GET all members NOT in a specific group
 router.get('/group/:id/members-not-in', async (req, res, next) => {
