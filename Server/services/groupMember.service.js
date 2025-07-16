@@ -93,3 +93,39 @@ export async function removeMemberFromGroup(id_group, id_community_member) {
 
   return removed;
 }
+
+export async function removeMultipleMembersFromGroup(id_group, id_community_members) {
+  const results = [];
+
+  for (const id_community_member of id_community_members) {
+    const existingMembers = await groupMemberData.getByIds({ id_group });
+
+    const isInGroup = existingMembers.some(
+      (entry) => entry.id_community_member === id_community_member
+    );
+
+    if (!isInGroup) {
+      results.push({
+        id_community_member,
+        status: "not_in_group"
+      });
+      continue;
+    }
+
+    try {
+      await groupMemberData.remove(id_community_member, id_group);
+      results.push({
+        id_community_member,
+        status: "removed"
+      });
+    } catch (err) {
+      results.push({
+        id_community_member,
+        status: "error",
+        message: err.message
+      });
+    }
+  }
+
+  return results;
+}
