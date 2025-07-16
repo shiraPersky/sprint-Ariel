@@ -21,7 +21,44 @@ if (!fs.existsSync(uploadsDir)) {
 // 🔥 ייבוא הפונקציה שלך לעיבוד LinkedIn URLs
 // ==============================================
 import { createMemberWithLinkedIn } from '../services/memberService.js'; // התאם את הנתיב
-
+router.post('/add-linkedin-member', async (req, res) => {
+  try {
+    console.log('🔗 Received LinkedIn URL addition request');
+    
+    const { linkedin_url } = req.body;
+    
+    // קריאה לפונקציה מה-service שעושה את כל העבודה
+    const result = await processLinkedInUrl(linkedin_url);
+    
+    if (result.success) {
+      res.json({
+        success: true,
+        message: 'LinkedIn member added successfully',
+        data: {
+          member: result.data,
+          linkedin_url: linkedin_url,
+          processing_time: new Date().toISOString()
+        }
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: result.error || 'Failed to add LinkedIn member',
+        details: result.details,
+        linkedin_url: linkedin_url
+      });
+    }
+    
+  } catch (error) {
+    console.error('❌ Error in add-linkedin-member route:', error);
+    
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: error.message
+    });
+  }
+});
 async function processLinkedInUrl(url) {
   try {
     console.log('🔄 Processing LinkedIn URL:', url);
