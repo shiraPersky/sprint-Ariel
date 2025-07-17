@@ -81,9 +81,9 @@ router.post('/:id_event/participants', async (req, res, next) => {
                 console.log('📅 event.time:', event);
                 console.log('📨 Sending invite to:', participantEmail);
                 await sendInviteWithResend(participantEmail, {
-                    title: event.description,
+                    //title: event.description,
                     time: event.time,
-                    //description: event.description,
+                    description: event.description,
                     location: event.location,
                 });
 
