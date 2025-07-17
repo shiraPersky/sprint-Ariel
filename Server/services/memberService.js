@@ -35,6 +35,10 @@ export async function getMemberById(id) {
 }
 
 function parseAndValidateId(id) {
+  if (typeof id !== 'string') {
+    id = String(id);
+  }
+
   const parsed = parseInt(id.trim(), 10);
   if (isNaN(parsed) || parsed < 1) throw new Error("Invalid ID");
   return parsed;
