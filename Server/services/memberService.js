@@ -303,6 +303,9 @@ async  function processLinkedInData(linkedinData) {
   );
   console.log("📷 Profile picture encoded to Base64:", linkedinData.fullName);
   console.log(linkedinData)
+  if (typeof linkedinData.wants_updates !== 'boolean') {
+  delete linkedinData.wants_updates;
+  }
   const baseData = {
     english_name: linkedinData.fullName || "Unknown User",
     title: linkedinData.headline || "No Title",
@@ -318,7 +321,15 @@ async  function processLinkedInData(linkedinData) {
       connections: linkedinData.connectionsCount,
     }),
     years_of_experience: calculateExperience(linkedinData.experiences || linkedinData.experience),
-    wants_updates: false,
+    wants_updates:
+  typeof linkedinData.wants_updates === 'boolean'
+    ? linkedinData.wants_updates
+    : typeof linkedinData.wants_updates === 'string' &&
+      (linkedinData.wants_updates.toLowerCase() === 'true' ||
+       linkedinData.wants_updates.toLowerCase() === 'false')
+      ? linkedinData.wants_updates.toLowerCase() === 'true'
+      : undefined,
+
     active: true,
     admin_notes: `Created from LinkedIn scraping at ${new Date().toISOString()}`,
   };
@@ -491,7 +502,8 @@ export async function createMemberWithLinkedIn(linkedin_url) {
     });
 
     // שלב 3: יצירת הפרופיל במערכת
-    const newMember = await create(processedData);
+    const prismaReadyData = prepareDataForPrisma(processedData, false);
+    const newMember = await create(prismaReadyData);
 
     console.log(
       "✅ Member created successfully:",
@@ -524,6 +536,21 @@ function prepareDataForPrisma(data, isUpdate = false) {
   } = data;
 
   const prismaData = { ...rest };
+
+  const rawWantsUpdates = data.wants_updates;
+
+if (typeof rawWantsUpdates === 'boolean') {
+  prismaData.wants_updates = rawWantsUpdates;
+} else if (typeof rawWantsUpdates === 'string') {
+  const lowered = rawWantsUpdates.toLowerCase();
+  if (lowered === 'true') {
+    prismaData.wants_updates = true;
+  } else if (lowered === 'false') {
+    prismaData.wants_updates = false;
+  } 
+}
+
+
 
   if (Array.isArray(skills)) {
     prismaData.skills = isUpdate
