@@ -72,10 +72,23 @@ ${cvText}
   });
 
   const content = completion.choices[0].message.content;
+
   try {
-    return JSON.parse(content); 
-  } catch (e) {
-    console.error('Failed to parse GPT response as JSON:', content);
-    throw new Error('Failed to parse GPT response');
+  const parsed = JSON.parse(content);
+
+  // 🔧 נוודא ש-wants_updates הוא באמת boolean
+  if ('wants_updates' in parsed) {
+    parsed.wants_updates =
+      parsed.wants_updates === true || parsed.wants_updates === 'true';
+
+    if (typeof parsed.wants_updates !== 'boolean') {
+      delete parsed.wants_updates;
+    }
   }
+
+  return parsed;
+} catch (e) {
+  console.error('Failed to parse GPT response as JSON:', content);
+  throw new Error('Failed to parse GPT response');
+}
 }
