@@ -1,7 +1,7 @@
 
 
 import express from 'express';
-import { getAllEventsWithParticipantsService, getAvailableMembersForEventService, getParticipantsByEventIdService, addParticipantToEventService,getEventById } from '../services/eventService.js';
+import { getAllEventsWithParticipantsService, getAvailableMembersForEventService, getParticipantsByEventIdService, addParticipantToEventService,getEventById,createEvent } from '../services/eventService.js';
 import { getMemberForUser } from "../services/memberService.js";
 import {sendInviteWithResend, getMemberEmailById} from '../services/calendarService.js';
 
@@ -96,7 +96,7 @@ router.post('/:id_event/participants', async (req, res, next) => {
             }
         })();
 
-        // 3. תגובה ללקוח
+        // response
         res.status(201).json({ success: true, message: 'Participant added' });
 
     } catch (err) {
@@ -108,5 +108,13 @@ router.post('/:id_event/participants', async (req, res, next) => {
     }
 });
 
+router.post('/', async (req, res, next) => {
+    try {
+        const event = await createEvent(req.body);
+        res.status(201).json({ message: 'Event created', data: event });
+    } catch (err) {
+        next(err); 
+    }
+});
 
 export default router;

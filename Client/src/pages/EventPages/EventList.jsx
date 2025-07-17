@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AddParticipant from './AddParticipant';
+import NewEventForm from './NewEventForm';
 
 
 export default function EventList() {
@@ -10,28 +11,28 @@ export default function EventList() {
     const [expandedEventId, setExpandedEventId] = useState(null);
 
     const [eventParticipants, setEventParticipants] = useState({});//for load participiant after add member
-
+    const [showNewEventForm, setShowNewEventForm] = useState(false);
     const navigate = useNavigate();
 
     const handleMemberClick = (memberId) => {
         navigate(`/member/${memberId}/data`);
     };
 
-    useEffect(() => {
-        const fetchEvents = async () => {
-            try {
-                const response = await fetch("http://localhost:5000/events/events-with-participants");
-                if (!response.ok) throw new Error("Failed to fetch events");
-                const data = await response.json();
-                setEvents(data.data);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const fetchAllEvents = async () => {
+        try {
+            const response = await fetch("http://localhost:5000/events/events-with-participants");
+            if (!response.ok) throw new Error("Failed to fetch events");
+            const data = await response.json();
+            setEvents(data.data);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-        fetchEvents();
+    useEffect(() => {
+        fetchAllEvents();
     }, []);
 
     const toggleParticipants = (eventId) => {
@@ -69,6 +70,20 @@ export default function EventList() {
                 <h1 className="text-3xl font-bold text-indigo-700 mb-8 text-center">
                     📅 Event Management
                 </h1>
+                <div className="flex justify-end mb-6">
+                    <button
+                        onClick={() => setShowNewEventForm((prev) => !prev)}
+                        className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+                    >
+                        {showNewEventForm ? "Close Form" : "➕ Add New Event"}
+                    </button>
+                </div>
+                {showNewEventForm && (
+                    <NewEventForm
+                        onClose={() => setShowNewEventForm(false)}
+                        onSuccess={fetchAllEvents}
+                    />
+                )}
                 <div className="space-y-4">
                     {events.map((event) => (
                         <div
