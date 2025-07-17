@@ -1,4 +1,3 @@
-// Modal עדכון שם קבוצה
 import React, { useState } from "react";
 import { X, Check, Loader2 } from "lucide-react";
 
@@ -22,7 +21,6 @@ const EditGroupModal = ({ isOpen, onClose, group, onUpdateGroup }) => {
     }
   };
 
-  // עדכן את השם כשהקבוצה משתנה
   React.useEffect(() => {
     if (group) {
       setNewGroupName(group.group_name);
@@ -35,7 +33,7 @@ const EditGroupModal = ({ isOpen, onClose, group, onUpdateGroup }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-800">עדכן שם קבוצה</h2>
+          <h2 className="text-xl font-bold text-gray-800">Update Group Name</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -48,14 +46,14 @@ const EditGroupModal = ({ isOpen, onClose, group, onUpdateGroup }) => {
         <form onSubmit={handleSubmit}>
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              שם הקבוצה החדש *
+              New Group Name *
             </label>
             <input
               type="text"
               value={newGroupName}
               onChange={(e) => setNewGroupName(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="הכנס שם קבוצה חדש..."
+              placeholder="Enter new group name..."
               required
               disabled={loading}
             />

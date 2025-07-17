@@ -18,7 +18,7 @@ const GroupsDropdown = ({
     >
       <span className="flex items-center text-sm font-medium">
         <Users className="w-4 h-4 ml-2" />
-        קבוצות {selectedGroups.length > 0 && `(${selectedGroups.length})`}
+        Groups {selectedGroups.length > 0 && `(${selectedGroups.length})`}
       </span>
       <ChevronDown
         className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`}

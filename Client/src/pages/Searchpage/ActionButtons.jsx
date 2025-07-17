@@ -13,13 +13,13 @@ const ActionButtons = ({ onClear, onSearch, loading, searchMode, onAddGroup }) =
   const handleAddGroup = () => {
     console.log('👥 Adding new group...');
     if (onAddGroup) {
-      onAddGroup(); // פתח modal או component מקומי
+      onAddGroup(); 
     } else {
-      navigate('/add-group'); // או נווט לעמוד נפרד
+      navigate('/add-group'); 
     }
   };
 
-  // קבע את הטקסט והפונקציה לפי מצב החיפוש
+  
   const getAddButtonConfig = () => {
     if (searchMode === 'users') {
       return {

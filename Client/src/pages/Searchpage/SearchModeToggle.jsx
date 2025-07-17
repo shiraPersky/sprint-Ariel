@@ -1,7 +1,6 @@
 import React from 'react';
 import { Users, UserCheck,User } from 'lucide-react'; // ← הוסף את זה!
 
-// קומפוננט Toggle למצבי חיפוש
 const SearchModeToggle = ({ searchMode, setSearchMode }) => (
   <div className="flex justify-center mb-8">
     <div className="flex bg-gray-100 rounded-full p-2">

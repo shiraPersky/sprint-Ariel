@@ -14,15 +14,15 @@ const GroupCard = ({ group, onGroupUpdated, onGroupDeleted }) => {
   };
 
   const handleEditClick = (e) => {
-    e.stopPropagation(); // מונע את הניווט
+    e.stopPropagation(); // Prevent navigation
     setShowEditModal(true);
   };
 
   const handleDeleteClick = (e) => {
-    e.stopPropagation(); // מונע את הניווט
-    
+    e.stopPropagation(); // Prevent navigation
+
     const confirmDelete = window.confirm(
-      `האם אתה בטוח שברצונך למחוק את הקבוצה "${group.group_name}"?\n\nפעולה זו לא ניתנת לביטול ותמחק את כל החברות בקבוצה.`
+      `Are you sure you want to delete the group "${group.group_name}"?\n\nThis action cannot be undone and will delete all members in the group.`
     );
 
     if (confirmDelete) {
@@ -35,16 +35,16 @@ const GroupCard = ({ group, onGroupUpdated, onGroupDeleted }) => {
       if (onGroupDeleted) {
         await onGroupDeleted(group.id_group);
       }
-      alert(`הקבוצה "${group.group_name}" נמחקה בהצלחה!`);
+      alert(`The group "${group.group_name}" deleted successfully!`);
     } catch (error) {
-      alert('שגיאה במחיקת הקבוצה');
+      alert('Error deleting group');
       console.error('Error deleting group:', error);
     }
   };
 
   const handleUpdateGroup = async (groupId, newName) => {
     try {
-      // קרא לפונקציה מהקומפוננט ההורה
+
       if (onGroupUpdated) {
         await onGroupUpdated(groupId, newName);
       }
@@ -61,9 +61,8 @@ const GroupCard = ({ group, onGroupUpdated, onGroupDeleted }) => {
         className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6 cursor-pointer border border-gray-200 relative"
         onClick={handleClick}
       >
-        {/* כפתורי עריכה ומחיקה - ברמה הגבוהה ביותר */}
         <div className="absolute top-3 left-3 flex gap-2 z-10">
-          {/* כפתור עריכה */}
+          {/* Edit button */}
           <button
             onClick={handleEditClick}
             className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-all hover:bg-blue-50 border border-gray-200"
@@ -72,7 +71,7 @@ const GroupCard = ({ group, onGroupUpdated, onGroupDeleted }) => {
             <Edit2 className="w-4 h-4 text-blue-600" />
           </button>
 
-          {/* כפתור מחיקה */}
+          {/*delete button */}
           <button
             onClick={handleDeleteClick}
             className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-all hover:bg-red-50 border border-gray-200"
@@ -82,25 +81,16 @@ const GroupCard = ({ group, onGroupUpdated, onGroupDeleted }) => {
           </button>
         </div>
 
-        {/* תוכן הכרטיס עם מרווח מלמעלה */}
         <div className="text-center pt-8">
           <h3 className="font-bold text-lg text-gray-800 mb-4 break-words">
             {group.group_name}
           </h3>
 
-          {/* <button 
-            className="w-full px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all font-medium"
-            onClick={(e) => {
-              e.stopPropagation(); // מונע את הניווט כשלוחצים על הכפתור
-              alert('הצטרפות לקבוצה - יתווסף בעתיד');
-            }}
-          >
-            הצטרף לקבוצה
-          </button> */}
+        
         </div>
       </div>
 
-      {/* Modal עדכון שם */}
+     
       <EditGroupModal
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}

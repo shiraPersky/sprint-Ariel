@@ -93,7 +93,6 @@ const uploadExcelFile = async (file) => {
     const response = await fetch('/pload-excel', {
       method: 'POST',
       body: formData,
-      // לא מגדירים Content-Type - הדפדפן יעשה זאת אוטומטי
     });
     
     if (!response.ok) {
@@ -109,7 +108,6 @@ const uploadExcelFile = async (file) => {
   } catch (error) {
     console.error('❌ Error uploading Excel file:', error);
     
-    // הודעות שגיאה ידידותיות
     if (error.message.includes('404')) {
       alert('שגיאה: נתיב השרת לא נמצא');
     } else if (error.message.includes('413')) {
@@ -153,7 +151,6 @@ const uploadExcelFile = async (file) => {
     }
   };
 
-  // 🆕 פונקציה חדשה - קבלת חברי קבוצה
   const getGroupMembers = async (groupId) => {
     try {
       setLoading(true);
@@ -181,7 +178,6 @@ const uploadExcelFile = async (file) => {
     }
   };
 
-  // 🆕 פונקציה חדשה - קבלת פרטי קבוצה
   const getGroupDetails = async (groupId) => {
     try {
       console.log('📋 Fetching group details for:', groupId);
@@ -206,7 +202,6 @@ const uploadExcelFile = async (file) => {
     }
   };
 
-  // 🆕 פונקציה חדשה - קבלת רשימת משתמשים זמינים להוספה לקבוצה
   const getAvailableUsersForGroup = async (groupId) => {
     try {
       console.log('👤 Fetching available users for group:', groupId);
