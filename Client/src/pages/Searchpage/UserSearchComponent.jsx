@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Users, UserCheck, Upload, Filter, MapPin, Briefcase, GraduationCap, Calendar, Building, Award, ChevronDown, Loader2 } from 'lucide-react';
-// import useServerRequests from './useServerRequests';
-import useServerRequestsMock from './testcomp';
+import useServerRequests from './useServerRequests';
 import Header from './Header';
-import {SearchModeToggle} from './SearchModeToggle';
+import { SearchModeToggle } from './SearchModeToggle';
 import SearchField from './SearchField';
 import ActionButtons from './ActionButtons';
 import GroupsFilter from './GroupsFilter';
@@ -11,23 +10,30 @@ import SearchResults from './SearchResults';
 import FileUpload from './FileUpload';
 import AddGroupModal from './AddGroupModal';
 
-
+/**
+ * UserSearchComponent
+ * Main component for searching and managing users and groups
+ * Handles user/group search, filtering, file uploads, and CRUD operations
+ */
 const UserSearchComponent = () => {
+  // Search state
   const [searchMode, setSearchMode] = useState('users');
   const [searchText, setSearchText] = useState('');
   const [selectedGroups, setSelectedGroups] = useState([]);
   
-  // נתונים מקוריים (נטענים פעם אחת)
+  // Original data (loaded once)
   const [originalUsers, setOriginalUsers] = useState([]);
   const [originalGroups, setOriginalGroups] = useState([]);
   
-  // תוצאות חיפוש
+  // Search results
   const [searchResults, setSearchResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
   
+  // UI state
   const [isGroupsDropdownOpen, setIsGroupsDropdownOpen] = useState(false);
   const [isAddGroupModalOpen, setIsAddGroupModalOpen] = useState(false);
 
+  // Server requests hook
   const {
     loading,
     groupsLoading,
@@ -41,48 +47,57 @@ const UserSearchComponent = () => {
     uploadExcelFile,
     searchGroups,
     createGroup
-  } = useServerRequestsMock();
+  } = useServerRequests();
 
-  // טעינה ראשונית - טוען קבוצות לפילטר + כל הנתונים לתצוגה
+  /**
+   * Initialize data on component mount
+   * Loads all users, groups, and available groups for filtering
+   */
   useEffect(() => {
     const loadInitialData = async () => {
-      console.log('🚀 Loading initial data...');
+      console.log('Loading initial data...');
       
-      // טען קבוצות לפילטר (רשימה נפתחת)
+      // Fetch groups for filter
+      console.log('Fetching groups for filter...');
       await fetchGroups();
       
-      // טען כל המשתמשים לתצוגה ראשונית
-      console.log('📋 Loading all users...');
+      // Load all users
+      console.log('Loading all users...');
       const allUsers = await getAllUsers();
       setOriginalUsers(allUsers);
       
-      // טען כל הקבוצות לתצוגה ראשונית
-      console.log('👥 Loading all groups...');
+      // Load all groups
+      console.log('Loading all groups...');
       const allGroups = await getAllGroups();
       const groupsArray = allGroups.success ? allGroups.data : [];
-      console.log('Retrieved groups:11111', groupsArray);
       setOriginalGroups(groupsArray);
-
-      console.log('✅ Initial data loaded successfully');
+      
+      console.log('Initial data loaded successfully');
     };
     
     loadInitialData();
   }, []);
 
-  // חיפוש אוטומטי כאשר משנים את מצב החיפוש
+  /**
+   * Handle search mode changes
+   * Automatically performs search when search mode changes if there are search criteria
+   */
   useEffect(() => {
-    // בצע חיפוש רק אם יש טקסט חיפוש או פילטרים
     if (searchText.trim() || (searchMode === 'users' && selectedGroups.length > 0)) {
-      console.log('🔄 Search mode changed, performing automatic search...', { searchMode, searchText, selectedGroups });
+      console.log('Search mode changed, performing automatic search...', { searchMode, searchText, selectedGroups });
       handleSearch();
     } else if (hasSearched) {
-      // אם אין טקסט חיפוש אבל כבר בוצע חיפוש קודם, אפס את התוצאות
-      console.log('🧹 No search criteria, resetting to show all data...');
+      console.log('No search criteria, resetting to show all data...');
       setSearchResults([]);
       setHasSearched(false);
     }
-  }, [searchMode]); // רק כאשר searchMode משתנה
+  }, [searchMode]); // Only when searchMode changes
 
+  /**
+   * Handle group selection for filtering
+   * Toggles group selection in the filter
+   * @param {string} groupId - ID of the group to toggle
+   */
   const handleGroupChange = (groupId) => {
     setSelectedGroups(prev => 
       prev.includes(groupId) 
@@ -91,16 +106,28 @@ const UserSearchComponent = () => {
     );
   };
 
+  /**
+   * Handle group name update
+   * Updates group name and refreshes data
+   * @param {string} groupId - ID of the group to update
+   * @param {string} newName - New name for the group
+   */
   const handleGroupUpdated = async (groupId, newName) => {
-    console.log('🚀 Updating group name:', { groupId, newName });
+    console.log('Updating group name:', { groupId, newName });
     await updateGroupName(groupId, newName);
-    // רענן את הקבוצות
+    
+    // Refresh groups data
     const refreshedGroups = await getAllGroups();
     const groupsArray = refreshedGroups.success ? refreshedGroups.data : [];
     setOriginalGroups(groupsArray);
-    await fetchGroups(); // עדכן גם את הפילטר
+    await fetchGroups(); // Update filter as well
   };
 
+  /**
+   * Get selected group names for display
+   * Maps selected group IDs to their names
+   * @returns {string[]} Array of selected group names
+   */
   const getSelectedGroupNames = () => {
     return selectedGroups.map(groupId => {
       const group = availableGroups.find(g => g.id === groupId);
@@ -108,40 +135,52 @@ const UserSearchComponent = () => {
     }).filter(name => name);
   };
 
+  /**
+   * Handle group deletion
+   * Deletes group and refreshes data
+   * @param {string} groupId - ID of the group to delete
+   */
   const handleGroupDeleted = async (groupId) => {
-    console.log('🗑️ Deleting group:', groupId);
+    console.log('Deleting group:', groupId);
     await deleteGroup(groupId);
-    // רענן את הקבוצות
+    
+    // Refresh groups data
     const refreshedGroups = await getAllGroups();
     const groupsArray = refreshedGroups.success ? refreshedGroups.data : [];
     setOriginalGroups(groupsArray);
-    await fetchGroups(); // עדכן גם את הפילטר
+    await fetchGroups(); // Update filter as well
   };
 
+  /**
+   * Handle file upload to server
+   * Uploads Excel file and refreshes all data
+   * @param {File} file - File to upload
+   * @returns {Promise} Upload result
+   */
   const handleSendToServer = async (file) => {
     try {
       const result = await uploadExcelFile(file);
-      console.log('📤 File upload result:', result);
+      console.log('File upload result:', result);
       
-      // הצגת הודעת הצלחה
+      // Show success message
       alert(`The file ${file.name} was uploaded successfully!`);
       
-      // טען מחדש את כל המשתמשים ועדכן את הstate
-      console.log('🔄 Refreshing users data after upload...');
+      // Reload all users and update state
+      console.log('Refreshing users data after upload...');
       const refreshedUsers = await getAllUsers();
       setOriginalUsers(refreshedUsers);
       
-      // טען מחדש את הקבוצות גם
-      console.log('🔄 Refreshing groups data after upload...');
+      // Reload groups as well
+      console.log('Refreshing groups data after upload...');
       const refreshedGroups = await getAllGroups();
       const groupsArray = refreshedGroups.success ? refreshedGroups.data : [];
       setOriginalGroups(groupsArray);
       
-      // נקה את תוצאות החיפוש כדי להציג את כל הנתונים המעודכנים
+      // Clear search results to show all updated data
       setSearchResults([]);
       setHasSearched(false);
       
-      // אם השרת מחזיר נתונים חדשים נוספים, עדכן את הstate
+      // If server returns additional new data, update state
       if (result.data) {
         if (result.data.users) {
           setOriginalUsers(prev => [...prev, ...result.data.users]);
@@ -151,21 +190,25 @@ const UserSearchComponent = () => {
         }
       }
       
-      console.log('✅ Data refreshed successfully after upload');
+      console.log('Data refreshed successfully after upload');
       return result;
       
     } catch (error) {
-      // השגיאה כבר מטופלת ב-hook
+      // Error is already handled in hook
       console.error('Upload failed:', error);
     }
   };
 
+  /**
+   * Handle search execution
+   * Performs search based on current search mode and criteria
+   */
   const handleSearch = async () => {
-    console.log('🔍 Starting search...', { searchMode, searchText, selectedGroups });
+    console.log('Starting search...', { searchMode, searchText, selectedGroups });
     
     if (searchMode === 'users') {
       const results = await searchUsers(searchText, selectedGroups);
-      console.log('📊 Search results:', results);
+      console.log('Search results:', results);
       setSearchResults(results.data || []);
     } else {
       const results = await searchGroups(searchText);
@@ -175,30 +218,44 @@ const UserSearchComponent = () => {
     setHasSearched(true);
   };
 
+  /**
+   * Clear all filters and reset data
+   * Resets search text, selected groups, and search results
+   */
   const clearFilters = async () => {
-    console.log('🧹 Clearing filters and resetting data...');
+    console.log('Clearing filters and resetting data...');
     
-    // נקה את הפילטרים
+    // Clear filters
     setSearchText('');
     setSelectedGroups([]);
     setIsGroupsDropdownOpen(false);
     setSearchResults([]);
     setHasSearched(false);
     
-    console.log('✅ Filters cleared and data reset');
+    console.log('Filters cleared and data reset');
   };
 
+  /**
+   * Handle file upload (legacy method)
+   * Basic file upload handler for input change events
+   * @param {Event} event - File input change event
+   */
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     
     if (file) {
-      console.log('📎 File uploaded:', file.name);
+      console.log('File uploaded:', file.name);
       alert(`File ${file.name} uploaded successfully! (In a real project, Excel parsing would happen here)`);
     }
   };
 
+  /**
+   * Handle adding new group
+   * Creates new group and updates data
+   * @param {Object} groupData - Group data to create
+   */
   const handleAddGroup = async (groupData) => {
-    const result = await createGroup(groupData); // השתמש בפונקציה מה-hook
+    const result = await createGroup(groupData);
     
     if (result.success) {
       setOriginalGroups(prev => [...prev, result.data]);
@@ -209,7 +266,11 @@ const UserSearchComponent = () => {
     }
   };
 
-  // קבע איזה נתונים להציג
+  /**
+   * Determine which data to display
+   * Returns search results if search was performed, otherwise returns original data
+   * @returns {Object} Object containing users and groups arrays to display
+   */
   const getDisplayData = () => {
     if (hasSearched) {
       return {

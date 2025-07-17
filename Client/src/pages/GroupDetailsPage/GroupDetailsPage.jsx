@@ -1,16 +1,27 @@
-// GroupDetailsPage.js - דף פרטי קבוצה עם רשימת חברים - עם קריאת API אמיתית
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Users, Building, Tag, Loader2, UserPlus, UserMinus, Trash2, X, ArrowLeft } from 'lucide-react';
-import useServerRequestsMock from '../Searchpage/testcomp'; // או useServerRequests
-import UserCard from '../Searchpage/UserCard';
+import useServerRequestsMock from '../Searchpage/testcomp';
 import AddUsersModal from './AddUsersModal';
 
+// Import components
+// import BackButton from './BackButton';
+import GroupHeader from './GroupHeader';
+import MembersSectionHeader from './MembersSectionHeader';
+import MembersGrid from './MembersGrid';
+import DeleteModeBanner from './DeleteModeBanner';
+import { LoadingSpinner, GroupNotFound } from './LoadingSpinner';
+import { getGroupDetails, getGroupMembers } from './API Services';
+
+/**
+ * GroupDetailsPage Component
+ * Main page component for displaying group details and managing members
+ */
 const GroupDetailsPage = () => {
   const { groupId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   
+  // State management
   const [group, setGroup] = useState(null);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,103 +31,18 @@ const GroupDetailsPage = () => {
   const [selectedForDeletion, setSelectedForDeletion] = useState([]);
   const [deleting, setDeleting] = useState(false);
   
-  // קבלת נתוני הקבוצה מה-state
+  // Get group data from navigation state
   const groupData = location.state?.group;
   
   const { 
-    getAvailableUsersForGroup, 
     addUsersToGroup,
     removeUsersFromGroup,
   } = useServerRequestsMock();
 
-  // פונקציה לטעינת פרטי הקבוצה מהשרת
-  const getGroupDetails = async (groupId) => {
-    try {
-      console.log('🔄 Fetching group details for group:', groupId);
-      
-      const response = await fetch(`http://localhost:5000/communities/group/${groupId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('✅ Group details API Response:', result);
-
-      if (result.success) {
-        return result.data;
-      } else {
-        console.error('❌ API returned error:', result);
-        return null;
-      }
-    } catch (error) {
-      console.error('❌ Error fetching group details:', error);
-      throw error;
-    }
-  };
-
-  // פונקציה לטעינת חברי הקבוצה מהשרת
-  const getGroupMembers = async (groupId) => {
-    try {
-      console.log('🔄 Fetching group members for group:', groupId);
-      
-      const response = await fetch(`http://localhost:5000/communities/group/${groupId}/members`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('✅ Group members API Response:', result);
-
-      if (result.success) {
-        // המר את הנתונים מהשרת לפורמט שהקומפוננט מצפה לו
-        const formattedMembers = result.data.map(memberData => {
-          const member = memberData.member;
-          return {
-            id: member.id_community_member,
-            english_name: member.english_name,
-            position: member.title,
-            company: member.about,
-            email: member.email,
-            phone: member.phone,
-            city: member.city,
-            linkedin_url: member.linkedin_url,
-            facebook_url: member.facebook_url,
-            additional_info: member.additional_info,
-            years_of_experience: member.years_of_experience,
-            wants_updates: member.wants_updates,
-            active: member.active,
-            admin_notes: member.admin_notes,
-            community_value_id: member.community_value_id,
-            // שדות נוספים לתצוגה טובה יותר
-            profile_picture_url: member.profile_picture_url || null,
-            description: member.additional_info || member.about
-          };
-        });
-
-        console.log('✅ Formatted members:', formattedMembers);
-        return formattedMembers;
-      } else {
-        console.error('❌ API returned error:', result);
-        return [];
-      }
-    } catch (error) {
-      console.error('❌ Error fetching group members:', error);
-      throw error;
-    }
-  };
-
+  /**
+   * Handle users added to group
+   * Reloads member list after successful addition
+   */
   const handleUsersAdded = async () => {
     try {
       setMembersLoading(true);
@@ -130,30 +56,33 @@ const GroupDetailsPage = () => {
     }
   };
 
+  /**
+   * Load group data and members on component mount
+   */
   useEffect(() => {
     const loadGroupData = async () => {
       try {
-        console.log('🔄 Loading group data for ID:', groupId);
-        console.log('📦 Group data from location state:', groupData);
+        console.log('Loading group data for ID:', groupId);
+        console.log('Group data from location state:', groupData);
         
-        // אם יש נתונים מה-state, השתמש בהם, אחרת טען מהשרת
+        // Use state data if available, otherwise fetch from server
         let groupDetails = groupData;
         if (!groupDetails) {
-          console.log('📡 No group data in state, fetching from server...');
+          console.log('No group data in state, fetching from server...');
           groupDetails = await getGroupDetails(groupId);
         }
         
-        // טען חברי הקבוצה
+        // Load group members
         const groupMembers = await getGroupMembers(groupId);
         
-        console.log('✅ Final group data:', groupDetails);
-        console.log('✅ Group members:', groupMembers);
+        console.log('Final group data:', groupDetails);
+        console.log('Group members:', groupMembers);
         
         setGroup(groupDetails);
         setMembers(groupMembers);
         
       } catch (error) {
-        console.error('❌ Error loading group data:', error);
+        console.error('Error loading group data:', error);
         alert('Error loading group data');
       } finally {
         setLoading(false);
@@ -166,6 +95,11 @@ const GroupDetailsPage = () => {
     }
   }, [groupId, groupData]);
 
+  /**
+   * Handle user card clicks
+   * Either selects for deletion or navigates to user profile
+   * @param {Object} user - User object that was clicked
+   */
   const handleUserClick = (user) => {
     if (deleteMode) {
       setSelectedForDeletion(prev => 
@@ -178,16 +112,28 @@ const GroupDetailsPage = () => {
     }
   };
 
+  /**
+   * Enter delete mode
+   * Activates member selection for deletion
+   */
   const enterDeleteMode = () => {
     setDeleteMode(true);
     setSelectedForDeletion([]);
   };
 
+  /**
+   * Exit delete mode
+   * Deactivates member selection and clears selection
+   */
   const exitDeleteMode = () => {
     setDeleteMode(false);
     setSelectedForDeletion([]);
   };
 
+  /**
+   * Handle member deletion
+   * Removes selected members from the group
+   */
   const handleDeleteUsers = async () => {
     if (selectedForDeletion.length === 0) {
       alert('Please select at least one user to delete');
@@ -202,7 +148,7 @@ const GroupDetailsPage = () => {
 
     try {
       setDeleting(true);
-      console.log('🗑️ Removing users from group:', { groupId, selectedForDeletion });
+      console.log('Removing users from group:', { groupId, selectedForDeletion });
       
       const result = await removeUsersFromGroup(groupId, selectedForDeletion);
       
@@ -217,270 +163,83 @@ const GroupDetailsPage = () => {
         alert('Error removing users: ' + errorMsg);
       }
     } catch (error) {
-      console.error('❌ Error removing users:', error);
+      console.error('Error removing users:', error);
       alert('Error removing users from group');
     } finally {
       setDeleting(false);
     }
   };
 
+  /**
+   * Select all members for deletion
+   */
   const selectAllForDeletion = () => {
     setSelectedForDeletion(members.map(member => member.id));
   };
 
+  /**
+   * Clear member selection
+   */
   const selectNoneForDeletion = () => {
     setSelectedForDeletion([]);
   };
 
+  /**
+   * Navigate back to search page
+   */
+  const handleBackToSearch = () => {
+    navigate('/UserSearch');
+  };
+
+  // Loading state
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="flex items-center space-x-2">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-          <span className="text-lg text-gray-600">Loading group details...</span>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
+  // Group not found state
   if (!group) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Group not found</h2>
-          <button
-            onClick={() => navigate('/UserSearch')}
-            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            Back to Search
-          </button>
-        </div>
-      </div>
-    );
+    return <GroupNotFound onBackToSearch={handleBackToSearch} />;
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-7xl mx-auto">
         
-        {/* כפתור חזרה */}
-        <button
-          onClick={() => navigate('/UserSearch')}
-          className="flex items-center mb-6 px-4 py-2 bg-white rounded-lg shadow hover:bg-gray-50 transition-all"
-        >
-          <ArrowLeft className="w-5 h-5 ml-2" />
-          Back to Search
-        </button>
+        {/* Back Button */}
+        {/* <BackButton onClick={handleBackToSearch} /> */}
 
-        {/* כותרת הקבוצה */}
-        <div className="bg-white rounded-3xl shadow-xl p-8 mb-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-            
-            {/* תמונת הקבוצה */}
-            <div className="flex-shrink-0">
-              <img
-                src={group.image || group.group_image || '/api/placeholder/128/96'}
-                alt={group.group_name || group.name || 'Group Image'}
-                className="w-32 h-24 object-cover rounded-xl shadow-md"
-                onError={(e) => {
-                  console.log('🖼️ Image failed to load, using fallback');
-                  e.target.src = '/api/placeholder/128/96';
-                }}
-              />
-            </div>
-            
-            {/* פרטי הקבוצה */}
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                {group.group_name || group.name || 'Unnamed Group'}
-              </h1>
-              
-              {group.description && (
-                <p className="text-gray-600 text-lg mb-4">{group.description}</p>
-              )}
-              
-              <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                <div className="flex items-center">
-                  <Users className="w-4 h-4 mr-2" />
-                  <span>Members: {members.length}</span>
-                </div>
-                
-                {group.category && (
-                  <div className="flex items-center">
-                    <Building className="w-4 h-4 ml-2" />
-                    <span>{group.category}</span>
-                  </div>
-                )}
-              </div>
-              
-              {/* תגיות */}
-              {group.tags && group.tags.length > 0 && (
-                <div className="mt-4">
-                  <div className="flex items-center mb-2">
-                    <Tag className="w-4 h-4 ml-2" />
-                    <span className="text-sm font-medium text-gray-700">Tags:</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {group.tags.map((tag, index) => (
-                      <span key={index} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        {/* Group Header */}
+        <GroupHeader group={group} memberCount={members.length} />
 
-        {/* רשימת חברי הקבוצה */}
+        {/* Members Section */}
         <div className="bg-white rounded-3xl shadow-xl p-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">
-              Community Members ({members.length})
-            </h2>
-            
-            <div className="flex items-center gap-4">
-              {membersLoading && (
-                <div className="flex items-center">
-                  <Loader2 className="w-5 h-5 animate-spin text-blue-500 ml-2" />
-                  <span className="text-gray-600">Loading members...</span>
-                </div>
-              )}
-              
-              {!deleteMode ? (
-                <>
-                  <button
-                    onClick={() => setShowAddUsersModal(true)}
-                    className="flex items-center justify-center p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-all"
-                    disabled={loading}
-                    title="Add Users"
-                  >
-                    <UserPlus className="w-5 h-5" />
-                  </button>
+          <MembersSectionHeader
+            memberCount={members.length}
+            membersLoading={membersLoading}
+            deleteMode={deleteMode}
+            selectedForDeletion={selectedForDeletion}
+            deleting={deleting}
+            onAddUsers={() => setShowAddUsersModal(true)}
+            onEnterDeleteMode={enterDeleteMode}
+            onExitDeleteMode={exitDeleteMode}
+            onSelectAll={selectAllForDeletion}
+            onSelectNone={selectNoneForDeletion}
+            onDeleteUsers={handleDeleteUsers}
+            loading={loading}
+          />
 
-                  <button
-                    onClick={enterDeleteMode}
-                    className="flex items-center justify-center p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-all"
-                    disabled={loading || members.length === 0}
-                    title="Remove Users"
-                  >
-                    <UserMinus className="w-5 h-5" />
-                  </button>
-                </>
-              ) : (
-                <>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">
-                      Selected {selectedForDeletion.length} users
-                    </span>
-                    
-                    <button
-                      onClick={selectAllForDeletion}
-                      className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 transition-colors"
-                      disabled={deleting}
-                    >
-                      Select All
-                    </button>
-                    
-                    <button
-                      onClick={selectNoneForDeletion}
-                      className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 transition-colors"
-                      disabled={deleting || selectedForDeletion.length === 0}
-                    >
-                      Clear Selection
-                    </button>
-                  </div>
-                  
-                  <button
-                    onClick={handleDeleteUsers}
-                    disabled={selectedForDeletion.length === 0 || deleting}
-                    className="flex items-center px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {deleting ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin ml-2" />
-                        Deleting...
-                      </>
-                    ) : (
-                      <>
-                        <Trash2 className="w-5 h-5 ml-2" />
-                        Delete ({selectedForDeletion.length})
-                      </>
-                    )}
-                  </button>
-                  
-                  <button
-                    onClick={exitDeleteMode}
-                    className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all"
-                    disabled={deleting}
-                  >
-                    <X className="w-5 h-5 ml-2" />
-                    Cancel
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
+          <DeleteModeBanner deleteMode={deleteMode} />
 
-          {deleteMode && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-700 text-sm">
-                <strong>Delete Mode:</strong> Click on users to select them for removal from the group
-              </p>
-            </div>
-          )}
-
-          {members.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {members.map(member => {
-                const isSelectedForDeletion = selectedForDeletion.includes(member.id);
-                return (
-                  <div 
-                    key={member.id} 
-                    onClick={() => handleUserClick(member)}
-                    className={`relative ${deleteMode ? 'cursor-pointer' : ''} ${
-                      isSelectedForDeletion ? 'ring-4 ring-red-500 ring-opacity-50' : ''
-                    }`}
-                  >
-                    {deleteMode && (
-                      <div className={`absolute top-2 right-2 z-10 w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                        isSelectedForDeletion 
-                          ? 'bg-red-500 border-red-500' 
-                          : 'bg-white border-gray-300'
-                      }`}>
-                        {isSelectedForDeletion && (
-                          <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                      </div>
-                    )}
-                    
-                    <div className={`${deleteMode ? 'pointer-events-none' : ''} ${
-                      isSelectedForDeletion ? 'opacity-75' : ''
-                    }`}>
-                      <UserCard user={member} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-500 text-lg">No members in this group yet</p>
-              <button
-                onClick={() => setShowAddUsersModal(true)}
-                className="mt-4 flex items-center mx-auto px-4 py-2 bg-gradient-to-r from-green-500 to-blue-600 text-white rounded-lg hover:from-green-600 hover:to-blue-700 transition-all"
-              >
-                <UserPlus className="w-5 h-5 ml-2" />
-                Add First Members
-              </button>
-            </div>
-          )}
+          <MembersGrid
+            members={members}
+            deleteMode={deleteMode}
+            selectedForDeletion={selectedForDeletion}
+            onUserClick={handleUserClick}
+            onAddUsers={() => setShowAddUsersModal(true)}
+          />
         </div>
 
+        {/* Add Users Modal */}
         <AddUsersModal
           isOpen={showAddUsersModal}
           onClose={() => setShowAddUsersModal(false)}
