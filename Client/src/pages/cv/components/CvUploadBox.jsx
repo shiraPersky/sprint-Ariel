@@ -1,12 +1,12 @@
-// File: src/pages/cv/components/CvUploadBox.jsx
+// src/pages/cv/components/CvUploadBox.jsx
 
 import React, { useRef } from "react";
 
 const CvUploadBox = ({ handleFileChange, handleDrop, handleDragOver }) => {
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef(null);//trigger the file input when the user clicks the button
 
   const triggerFileSelect = () => {
-    fileInputRef.current.click();
+    fileInputRef.current.click();//to open the file picker
   };
 
   return (

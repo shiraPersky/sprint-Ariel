@@ -1,24 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState} from 'react';//allows to store data in your component
 import useCvUpload from './hooks/useCvUpload';
 import CvUploadBox from './components/CvUploadBox';
 import CvProgressBar from './components/CvProgressBar';
 
 const CvMainUploadComponent = () => {
   const {
-    selectedFile,
-    previewURL,
-    uploadProgress,
-    uploadSuccess,
-    handleFileChange,
-    handleDrop,
-    handleDragOver,
-    simulateUpload,
-    resetUpload,
+    selectedFile, // The file the user uploaded
+    previewURL, // A link to show the PDF before upload
+    uploadProgress, // A number from 0–100
+    uploadSuccess, // If upload finished
+    handleFileChange, // Called when user selects a file
+    handleDrop, // Called when user drags a file into the box
+    handleDragOver, 
+    resetUpload,//resets everything if user removes the file
   } = useCvUpload();
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); //when waiting for the backend to respond
   const [error, setError] = useState(null);
 
+  //This function sends the file to the backend server
   const handleExtract = async () => {
     if (!selectedFile) return;
 
@@ -26,10 +26,10 @@ const CvMainUploadComponent = () => {
     setError(null);
 
     try {
-      const formData = new FormData();
+      const formData = new FormData();//This prepares the file to send in a request
       formData.append('cv', selectedFile);
 
-      const res = await fetch('http://localhost:5000/upload-cv', {
+      const res = await fetch('http://localhost:5000/upload-cv', {//Sends the file to the backend server 
         method: 'POST',
         body: formData,
       });
@@ -39,17 +39,16 @@ const CvMainUploadComponent = () => {
         setError(data.error || 'Failed to extract data');
       }
 
-      console.log('Extracted:', data.extractedText);
     } catch (err) {
       console.error('Upload error:', err);
       setError('Something went wrong during upload');
-    } finally {
+    } finally {//Whether success or error, stop the loading animation
       setLoading(false);
     }
   };
 
-  const showProgress = selectedFile && !uploadSuccess && uploadProgress < 100;
-  const showPreview = selectedFile && uploadSuccess;
+  const showProgress = selectedFile && !uploadSuccess && uploadProgress < 100;//true if file is selected, not finished uploading, and progress < 100.
+  const showPreview = selectedFile && uploadSuccess;//true if upload finished and file is ready to preview
 
   return (
     <div className="p-4 max-w-xl mx-auto">

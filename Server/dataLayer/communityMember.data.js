@@ -30,6 +30,85 @@ function cleanCreateRelations(data) {
 
   return cleanedData;
 }
+function isValidDate(value) {
+  const date = new Date(value);
+  return !isNaN(date.getTime());
+}
+
+function normalizeToISO(value) {
+  const date = new Date(value);
+  return date.toISOString(); // "2024-01-01T00:00:00.000Z"
+}
+
+function removeInvalidFields(data) {
+  const cleaned = {};
+
+  for (const [key, value] of Object.entries(data)) {
+    // דלג על שדות ריקים או על id_community_member
+    if (
+      key === 'id_community_member' ||
+      value === null ||
+      value === undefined ||
+      (typeof value === 'string' && value.trim() === '')
+    ) {
+      continue;
+    }
+
+    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') {
+      const cleanedArray = value.map(item => {
+        const cleanedItem = {};
+
+        for (const [k, v] of Object.entries(item)) {
+          if (
+            k === 'id_community_member' ||
+            v === null ||
+            v === undefined ||
+            (typeof v === 'string' && v.trim() === '')
+          ) continue;
+
+          if (
+            (k.includes('date') || k === 'start_date' || k === 'end_date')
+          ) {
+            if (isValidDate(v)) {
+              cleanedItem[k] = normalizeToISO(v);
+            }
+            continue;
+          }
+
+          cleanedItem[k] = v;
+        }
+
+        return cleanedItem;
+      }).filter(obj => Object.keys(obj).length > 0);
+
+      if (cleanedArray.length > 0) {
+        cleaned[key] = cleanedArray;
+      }
+
+      continue;
+    }
+
+    if (
+      (key.includes('date') || key === 'start_date' || key === 'end_date')
+    ) {
+      if (isValidDate(value)) {
+        cleaned[key] = normalizeToISO(value);
+      }
+      continue;
+    }
+
+    if (key === 'years_of_experience' && isNaN(Number(value))) {
+      continue;
+    }
+
+    cleaned[key] = value;
+  }
+  console.log("🚨 After removeInvalidFields:", JSON.stringify(cleaned, null, 2));
+
+  return cleaned;
+}
+
+
 
 async function create(data) {
 
@@ -43,18 +122,25 @@ async function create(data) {
 
   delete clonedData["id_community_member"];
 
-
-  const cleaned = cleanCreateRelations(clonedData);
+  //Remove invalid fields (like null, empty, wrong date/number)
+  const withoutInvalids = removeInvalidFields(clonedData);
+  //Clean nested relation fields (jobs, skills, etc.)
+  const cleaned = cleanCreateRelations(withoutInvalids);
 
   if ("id_community_member" in cleaned) {
-    console.error("❌ id_community_member still exists after cleanup!", cleaned.id_community_member);
+    console.error(" id_community_member still exists after cleanup!", cleaned.id_community_member);
     delete cleaned.id_community_member;
   }
 
 
 
-  console.log('Creating new community member with data:', data);
-  return await prisma.communityMember.create({ data });
+  console.log('Creating new community member with data:', JSON.stringify(cleaned, null, 2));
+  if ('id_community_member' in cleaned) {
+  delete cleaned.id_community_member;
+}
+
+  return await prisma.communityMember.create({ data: cleaned });
+
 
 
 }
