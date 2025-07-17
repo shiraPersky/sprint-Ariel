@@ -232,6 +232,14 @@ async function updateMemberAndRelations(id, data) {
   return updatedMember;
 }
 
+async function getEmailById(id) {
+  return await prisma.communityMember.findUnique({
+    where: { id_community_member: id },
+    select: {
+      email: true
+    },
+  });
+}
 
 export default {
   create,
@@ -241,4 +249,5 @@ export default {
   remove,
   getMembersNotInGroup,
   updateMemberAndRelations,
+  getEmailById,
 };
