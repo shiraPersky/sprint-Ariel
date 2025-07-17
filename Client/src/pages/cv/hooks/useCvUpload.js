@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
+//useState – to store and update values
+//useEffect – to run code automatically when something changes
 
 const useCvUpload = () => {
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [previewURL, setPreviewURL] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);//stores the file
+  const [previewURL, setPreviewURL] = useState(null);//This stores a preview link
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);//Becomes true when the upload simulation reaches 100%
 
   useEffect(() => {
-    if (selectedFile) {
+    if (selectedFile) {//If a file is selected, it automatically starts simulating the upload
       simulateUpload();
     }
   }, [selectedFile]);
@@ -24,7 +26,7 @@ const useCvUpload = () => {
     }
   };
 
-  const handleDrop = (e) => {
+  const handleDrop = (e) => {//Triggered when user drops a file onto a drop zone
     e.preventDefault();
     const file = e.dataTransfer.files[0];
     if (file && file.type === 'application/pdf') {
@@ -35,9 +37,9 @@ const useCvUpload = () => {
     }
   };
 
-  const handleDragOver = (e) => e.preventDefault();
+  const handleDragOver = (e) => e.preventDefault();//Needed to prevent browser from opening the file when it’s dragged over the page.
 
-  const simulateUpload = () => {
+  const simulateUpload = () => {//This creates a fake upload animation by updating the progress every 150ms
     let progress = 0;
     const interval = setInterval(() => {
       progress += 10;
@@ -49,7 +51,8 @@ const useCvUpload = () => {
     }, 150);
   };
 
-  const resetUpload = () => {
+  const resetUpload = () => {//Clears all state and resets the hook to its initial state
+  //Used when user clicks x to remove the uploaded file
     setSelectedFile(null);
     setPreviewURL(null);
     setUploadProgress(0);

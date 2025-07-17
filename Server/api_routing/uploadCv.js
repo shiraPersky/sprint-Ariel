@@ -11,10 +11,12 @@ router.post('/', upload.single('cv'), async (req, res) => {
       return res.status(400).json({ success: false, error: 'No file uploaded' });
     }
 
-    // כאן קוראים לשירות שמשלב הכל: extract + GPT + יצירה במסד נתונים
+    
     const result = await createMemberFromCvBuffer(req.file.buffer);
 
-    res.json({ success: true, ...result });
+    res.json({ success: true, id_community_member: result.createdMember.id_community_member });
+
+
   } catch (error) {
     console.error('CV upload error:', error);
     res.status(500).json({ success: false, error: error.message || 'Failed to process CV' });
