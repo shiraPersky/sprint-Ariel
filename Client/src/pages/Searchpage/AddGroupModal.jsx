@@ -7,12 +7,10 @@ const AddGroupModal = ({ isOpen, onClose, onAddGroup }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (groupName.trim()) {
-      // פשוט שולח את הנתונים ל-UserSearchComponent
       onAddGroup({
         name: groupName.trim()
       });
       
-      // נקה את הטופס וסגור את ה-modal
       setGroupName('');
       onClose();
     }
@@ -36,7 +34,7 @@ const AddGroupModal = ({ isOpen, onClose, onAddGroup }) => {
         <form onSubmit={handleSubmit}>
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              שם הקבוצה *
+              Name of Group *
             </label>
             <input
               type="text"
@@ -54,13 +52,13 @@ const AddGroupModal = ({ isOpen, onClose, onAddGroup }) => {
               onClick={onClose}
               className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors"
             >
-              ביטול
+              Cancel
             </button>
             <button
               type="submit"
               className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white rounded-xl transition-all"
             >
-              הוסף קבוצה
+              Add Group
             </button>
           </div>
         </form>

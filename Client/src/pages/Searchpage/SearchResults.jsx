@@ -1,10 +1,8 @@
-// קומפוננט תוצאות חיפוש - תיקון ID
 import React from 'react';
 import UserCard from './UserCard';
 import GroupCard from './GroupCard';
 
 const SearchResults = ({ searchMode, users, groups, onGroupUpdated ,onGroupDeleted}) => {
-  // הגנה על מערכים לא חוקיים
   const safeUsers = Array.isArray(users) ? users : [];
   const safeGroups = Array.isArray(groups) ? groups : [];
   
@@ -29,15 +27,15 @@ const SearchResults = ({ searchMode, users, groups, onGroupUpdated ,onGroupDelet
       {searchMode === 'groups' && (
         <div>
           <h3 className="text-xl font-bold text-gray-800 mb-4">
-            תוצאות חיפוש קבוצות ({safeGroups.length})
+            Search results for groups ({safeGroups.length})
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {safeGroups.map(group => (
               <GroupCard 
                 key={group.id_group || group.id} 
                 group={group} 
-                onGroupUpdated={onGroupUpdated} // העברת פונקציית עדכון
-                onGroupDeleted={onGroupDeleted} // העברת פונקציית מחיקה
+                onGroupUpdated={onGroupUpdated} // Pass update function
+                onGroupDeleted={onGroupDeleted} // Pass delete function
               />
             ))}
           </div>
