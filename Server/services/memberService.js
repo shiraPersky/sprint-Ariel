@@ -332,6 +332,7 @@ async  function processLinkedInData(linkedinData) {
 
     active: true,
     admin_notes: `Created from LinkedIn scraping at ${new Date().toISOString()}`,
+    
   };
 
   // הוספת skills אם קיימים
