@@ -44,6 +44,10 @@ function removeInvalidFields(data) {
   const cleaned = {};
 
   for (const [key, value] of Object.entries(data)) {
+    if (key === "wants_updates" && typeof value !== "boolean") {
+  continue; 
+}
+
     // דלג על שדות ריקים או על id_community_member
     if (
       key === 'id_community_member' ||
@@ -117,6 +121,9 @@ async function create(data) {
   }
 
   const clonedData = { ...data };
+  if ('wants_updates' in clonedData && typeof clonedData.wants_updates !== 'boolean') {
+  delete clonedData.wants_updates;
+  }
 
   console.log("🛠️ Raw clonedData BEFORE deletion:", clonedData);
 
