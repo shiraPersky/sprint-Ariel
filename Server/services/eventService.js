@@ -39,6 +39,23 @@ export async function getEventById(id_event) {
     return event;
 }
 
+export async function createEvent(data) {
+  const { description, time, location, type } = data;
+
+  if (!description || !time || !location) {
+    const error = new Error("Missing required fields");
+    error.status = 400;
+    throw error;
+  }
+
+  return await eventData.create({
+    description,
+    time: new Date(time),
+    location,
+    type,
+  });
+}
+
 // export async function addParticipantToEventService(eventId, memberId) {
 //   const existing = await participantEventData.getByIds(memberId, eventId);
 //   if (existing) throw new Error('Participant already registered');
