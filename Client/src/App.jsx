@@ -8,14 +8,14 @@ import UserSearchComponent from "./pages/Searchpage/UserSearchComponent";
 import EventList from "./pages/EventPages/EventList";
 import MainPageEditableUserProfile from "./pages/UserProfile/MainPageEditableUserProfile";
 import "./pages/index.css"; 
-import CvTemporaryPage from "./pages/cv/CvTemporaryPage";
+// import CvTemporaryPage from "./pages/cv/CvTemporaryPage";
 
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/cv-temp" element={<CvTemporaryPage />} />
+        {/* <Route path="/cv-temp" element={<CvTemporaryPage />} /> */}
 
        <Route path="/member/:id/data/" element={<MainPageEditableUserProfile />} />
        <Route path="/member/data/" element={<MainPageEditableUserProfile />} />

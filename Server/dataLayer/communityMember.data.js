@@ -48,7 +48,6 @@ function removeInvalidFields(data) {
   continue; 
 }
 
-    // דלג על שדות ריקים או על id_community_member
     if (
       key === 'id_community_member' ||
       value === null ||
@@ -125,7 +124,7 @@ async function create(data) {
   delete clonedData.wants_updates;
   }
 
-  console.log("🛠️ Raw clonedData BEFORE deletion:", clonedData);
+  console.log("Raw clonedData BEFORE deletion:", clonedData);
 
   delete clonedData["id_community_member"];
 

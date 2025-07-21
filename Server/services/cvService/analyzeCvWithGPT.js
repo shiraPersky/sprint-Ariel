@@ -1,5 +1,5 @@
 // services/analyzeCvWithGPT.js
-import { config } from 'dotenv';
+import { config } from 'dotenv';// For the .env variables
 import { OpenAI } from 'openai';
 
 config(); 
@@ -76,7 +76,6 @@ ${cvText}
   try {
   const parsed = JSON.parse(content);
 
-  // 🔧 נוודא ש-wants_updates הוא באמת boolean
   if ('wants_updates' in parsed) {
     parsed.wants_updates =
       parsed.wants_updates === true || parsed.wants_updates === 'true';

@@ -3,11 +3,11 @@ import multer from 'multer';
 import { createMemberFromCvBuffer } from '../services/cvService/createCommunityMemberFromCv.js';
 
 const router = express.Router();
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({ storage: multer.memoryStorage() });//extract the uploaded file and store it in memory (not on disk)
 
 router.post('/', upload.single('cv'), async (req, res) => {
   try {
-    if (!req.file) {
+    if (!req.file) {//if no file was sent
       return res.status(400).json({ success: false, error: 'No file uploaded' });
     }
 
