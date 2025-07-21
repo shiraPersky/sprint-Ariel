@@ -1,6 +1,7 @@
 import React from 'react';
-
-const CvPreview = ({ selectedFile, previewURL }) => {//selectedFile - the actual file object the user selected,
+//This component display a file name and the PDF itself in an iframe
+const CvPreview = ({ selectedFile, previewURL }) => {
+//selectedFile - the actual file object the user selected,
 //previewURL - a local browser URL that allows previewing the PDF
   if (!selectedFile) return null;
 

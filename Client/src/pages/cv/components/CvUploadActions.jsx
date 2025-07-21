@@ -7,13 +7,13 @@ const CvUploadActions = ({ onCancel, onUpload }) => {
         onClick={onCancel}
         className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
       >
-        ✖ Cancel
+        Cancel
       </button>
       <button
         onClick={onUpload}
         className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
       >
-        ⬆ Upload
+        Upload
       </button>
     </div>
   );

@@ -17,7 +17,7 @@ const CvUploadBox = ({ handleFileChange, handleDrop, handleDragOver }) => {
     >
       <input
         type="file"
-        accept="application/pdf"
+        accept="application/pdf"//gets only pdf
         onChange={handleFileChange}
         ref={fileInputRef}
         className="hidden"
