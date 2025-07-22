@@ -21,7 +21,9 @@
   },
   "type": "module",
   "scripts": {
+    "seed": "node scripts/seed.js",
     "dev": "nodemon server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev:with-seed": "npm run seed && npm run dev"
   }
 }
