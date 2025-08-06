@@ -31,8 +31,8 @@ export default function NewEventForm({ onClose, onSuccess }) {
                 throw new Error(errData.message || "Failed to create event");
             }
 
-            onSuccess(); // רענון הרשימה
-            onClose();   // סגירת הטופס
+            onSuccess(); 
+            onClose();   
         } catch (err) {
             setError(err.message);
         }

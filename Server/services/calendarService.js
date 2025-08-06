@@ -34,7 +34,7 @@ export async function sendInviteWithResend(toEmail, event) {
   const icsContent = generateICSContentSimple(event);
 
   await resend.emails.send({
-    from: 'Community Events <onboarding@resend.dev>', // ניתן לשנות לדומיין שלך
+    from: 'Community Events <onboarding@resend.dev>', 
     to: [toEmail],
     subject: `You're invited: ${event.description}`,
     html: `<p>Hello,<br/>You're invited to: <strong>${event.description}</strong><br/>Time: ${new Date(event.time).toLocaleString()}</p>`,
